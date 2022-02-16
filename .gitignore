@@ -97,3 +97,7 @@ local.properties
 .scala_dependencies
 .worksheet
 /target/
+
+# IntelliJ IDEA project files
+.idea/*
+pma-java.iml

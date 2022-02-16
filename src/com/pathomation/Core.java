@@ -39,7 +39,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * Java wrapper library for PMA.start, a universal viewer for whole slide
  * imaging and microscopy
  * </p>
- * 
+ *
  * @author Yassine Iddaoui
  * @version 2.0.0.96
  */
@@ -122,7 +122,7 @@ public class Core {
 	 * This method is used to determine whether the Java SDK runs in debugging mode
 	 * or not. When in debugging mode (flag = true), extra output is produced when
 	 * certain conditions in the code are not met
-	 * 
+	 *
 	 * @param flag Debugging mode (activated or deactivated)
 	 */
 	public static void setDebugFlag(boolean flag) {
@@ -139,31 +139,23 @@ public class Core {
 
 	/**
 	 * This method is used to get the session's ID
-	 * 
-	 * @param varargs Array of optional arguments
-	 *                <p>
-	 *                sessionID : First optional argument(String), default
-	 *                value(null), session's ID
-	 *                </p>
+	 *
+	 * @param sessionID sessionID : First optional argument(String)
+	 *
 	 * @return The same sessionID if explicited, otherwise it recovers a session's
 	 *         ID
 	 */
-	private static String sessionId(String... varargs) {
-		// setting the default value when argument's value is omitted
-		String sessionID = varargs.length > 0 ? varargs[0] : null;
-		if (sessionID == null) {
-			// if the sessionID isn't specified, maybe we can still recover it somehow
-			return firstSessionId();
-		} else {
-			// nothing to do in this case; a SessionID WAS passed along, so just continue
-			// using it
-			return sessionID;
-		}
+	private static String sessionId(String sessionID) {
+		return sessionID != null ? sessionID : firstSessionId();
+	}
+
+	private static String sessionId() {
+		return sessionId(null);
 	}
 
 	/**
 	 * This method is used to get PMA.core active session
-	 * 
+	 *
 	 * @return PMA.core active session
 	 */
 	private static String firstSessionId() {
@@ -192,18 +184,12 @@ public class Core {
 
 	/**
 	 * This method is used to get the url related to the session's ID
-	 * 
-	 * @param varargs Array of optional arguments
-	 *                <p>
-	 *                sessionID : First optional argument(String), default
-	 *                value(null), session's ID
-	 *                </p>
+	 *
+	 * @param sessionID session's ID
 	 * @return Url related to the session's ID
 	 * @throws Exception if sessionID is invalid
 	 */
-	public static String pmaUrl(String... varargs) throws Exception {
-		// setting the default value when argument's value is omitted
-		String sessionID = varargs.length > 0 ? varargs[0] : null;
+	public static String pmaUrl(String sessionID) throws Exception {
 		sessionID = sessionId(sessionID);
 		if (sessionID == null) {
 			// sort of a hopeless situation; there is no URL to refer to
@@ -228,6 +214,10 @@ public class Core {
 		}
 	}
 
+	public static String pmaUrl() throws Exception {
+		return pmaUrl(null);
+	}
+
 	/**
 	 * This method is used to check to see if PMA.core.lite (server component of
 	 * PMA.start) is running at a given endpoint. if pmaCoreURL is omitted, default
@@ -238,17 +228,13 @@ public class Core {
 	 * there's an instance of PMA.start (results in True), PMA.core (results in
 	 * False) or nothing (at least not a Pathomation software platform component) at
 	 * all (results in None)
-	 * 
-	 * @param varargs Array of optional arguments
-	 *                <p>
-	 *                pmaCoreURL : First optional argument(String), default
-	 *                value(Class field pmaCoreLiteURL), url of PMA.core instance
-	 *                </p>
+	 *
+	 * @param pmaCoreURL  First optional argument(String), default
+	 *                	value(Class field pmaCoreLiteURL), url of PMA.core instance
 	 * @return True if an instance of PMA.core.lite is running, false otherwise
 	 */
-	private static Boolean pmaIsLite(String... varargs) {
-		// setting the default value when argument's value is omitted
-		String pmaCoreURL = varargs.length > 0 ? varargs[0] : pmaCoreLiteURL;
+	private static Boolean pmaIsLite(String pmaCoreURL) {
+		pmaCoreURL = pmaCoreURL != null ? pmaCoreURL : pmaCoreLiteURL;
 		String url = PMA.join(pmaCoreURL, "api/json/IsLite");
 		try {
 			String jsonString = PMA.httpGet(url, "application/json");
@@ -265,45 +251,22 @@ public class Core {
 		}
 	}
 
+	private static Boolean pmaIsLite(){
+		return pmaIsLite(null);
+	}
+
 	/**
 	 * This method is used to define which content will be received "XML" or "Json"
 	 * for "API" Web service calls
-	 * 
-	 * @param varargs Array of optional arguments
-	 *                <p>
-	 *                sessionID : First optional argument(String), default
-	 *                value(null), session's ID
-	 *                </p>
-	 *                <p>
-	 *                xml : Second optional argument(Boolean), default value(true),
-	 *                define if method will return XML or Json content
-	 *                </p>
+	 *
+	 * @param sessionID session's ID
+	 *@param  xml XML or Json content
 	 * @return Add a sequence to the url to specify which content to be received
 	 *         (XML or Json)
 	 */
-	private static String apiUrl(Object... varargs) {
-		// setting the default values when arguments' values are omitted
-		String sessionID = null;
-		Boolean xml = false;
-		if (varargs.length > 0) {
-			if (!(varargs[0] instanceof String) && varargs[0] != null) {
-				if (PMA.logger != null) {
-					PMA.logger.severe("apiUrl() : Invalid argument");
-				}
-				throw new IllegalArgumentException("...");
-			}
-			sessionID = (String) varargs[0];
-		}
-		if (varargs.length > 1) {
-			if (!(varargs[1] instanceof Boolean) && varargs[1] != null) {
-				if (PMA.logger != null) {
-					PMA.logger.severe("apiUrl() : Invalid argument");
-				}
-				throw new IllegalArgumentException("...");
-			}
-			xml = (Boolean) varargs[1];
-		}
+	private static String apiUrl(String sessionID, Boolean xml) {
 		// let's get the base URL first for the specified session
+		xml = xml == null ? false : xml;
 		String url;
 		try {
 			url = pmaUrl(sessionID);
@@ -328,20 +291,21 @@ public class Core {
 		}
 	}
 
+	private static String apiUrl(String sessionID) {
+		return apiUrl(sessionID, false);
+	}
+
+	private static String apiUrl() {
+		return apiUrl(null, false);
+	}
+
 	/**
 	 * This method is used to create the query URL for a session ID
-	 * 
-	 * @param varargs Array of optional arguments
-	 *                <p>
-	 *                sessionID : First optional argument(String), default
-	 *                value(null), session's ID
-	 *                </p>
+	 *
+	 * @param sessionID : session's ID
 	 * @return Query URL
 	 */
-	public static String queryUrl(String... varargs) {
-		// setting the default value when argument's value is omitted
-		String sessionID = varargs.length > 0 ? varargs[0] : null;
-		// let's get the base URL first for the specified session
+	public static String queryUrl(String sessionID) {
 		try {
 			String url = pmaUrl(sessionID);
 			if (url == null) {
@@ -361,6 +325,10 @@ public class Core {
 		}
 	}
 
+	public static String queryUrl() {
+		return queryUrl(null);
+	}
+
 	/**
 	 * checks to see if PMA.core.lite (server component of PMA.start) is running at
 	 * a given endpoint. if pmaCoreURL is omitted, default check is to see if
@@ -371,34 +339,30 @@ public class Core {
 	 * instance of PMA.start (results in True), PMA.core (results in False) or
 	 * nothing (at least not a Pathomation software platform component) at all
 	 * (results in None)
-	 * 
-	 * @param varargs Array of optional arguments
-	 *                <p>
-	 *                pmaCoreURL : First optional argument(String), default
-	 *                value(Class field pmaCoreLiteURL), url of PMA.core instance
-	 *                </p>
+	 *
+	 * @param pmaCoreURL default value(Class field pmaCoreLiteURL), url of
+	 *                      PMA.core instance
+>
 	 * @return Checks if there is a PMA.core.lite or PMA.core instance running
 	 */
-	public static Boolean isLite(String... varargs) {
-		// setting the default value when argument's value is omitted
-		String pmaCoreURL = varargs.length > 0 ? varargs[0] : pmaCoreLiteURL;
+	public static Boolean isLite(String pmaCoreURL) {
+		pmaCoreURL = pmaCoreURL == null ? pmaCoreLiteURL: pmaCoreURL;
 		// See if there's a PMA.core.lite or PMA.core instance running at pmacoreURL
 		return pmaIsLite(pmaCoreURL);
 	}
 
+	public static Boolean isLite() {
+		return isLite(null);
+	}
+
 	/**
 	 * This method is used to get the version number
-	 * 
-	 * @param varargs Array of optional arguments
-	 *                <p>
-	 *                pmaCoreURL : First optional argument(String), default
-	 *                value(Class field pmaCoreLiteURL), url of PMA.core instance
-	 *                </p>
+	 *
+	 * @param pmaCoreURL url of PMA.core instance
 	 * @return Version number
 	 */
-	public static String getVersionInfo(String... varargs) {
-		// setting the default value when argument's value is omitted
-		String pmaCoreURL = varargs.length > 0 ? varargs[0] : pmaCoreLiteURL;
+	public static String getVersionInfo(String pmaCoreURL) {
+		pmaCoreURL = pmaCoreURL == null ? pmaCoreLiteURL : pmaCoreURL;
 		// Get version info from PMA.core instance running at pmacoreURL.
 		// Return null if PMA.core not found running at pmacoreURL endpoint
 		// purposefully DON'T use helper function apiUrl() here:
@@ -446,20 +410,19 @@ public class Core {
 		}
 	}
 
+	public static String getVersionInfo() {
+		return getVersionInfo(null);
+	}
+
 	/**
 	 * This method is used to get the API version in a list fashion
-	 * 
-	 * @param varargs Array of optional arguments
-	 *                <p>
-	 *                pmacoreURL : First optional argument(String), default
-	 *                value(Class field pmaCoreLiteURL), url of PMA.core instance
-	 *                </p>
+	 *
+	 * @param pmaCoreURL pmaCoreLiteURL), url of PMA.core instance
 	 * @return API version in a list fashion
 	 * @throws Exception If GetAPIVersion isn't available on the API
 	 */
-	public static List<Integer> getAPIVersion(String... varargs) throws Exception {
-		// setting the default values when arguments' values are omitted
-		String pmaCoreURL = varargs.length > 0 ? varargs[0] : pmaCoreLiteURL;
+	public static List<Integer> getAPIVersion(String pmaCoreURL) throws Exception {
+		pmaCoreURL = pmaCoreURL == null ? pmaCoreLiteURL : pmaCoreURL;
 		String url = PMA.join(pmaCoreURL, "api/json/GetAPIVersion");
 		if (PMA.debug) {
 			System.out.println(url);
@@ -523,50 +486,43 @@ public class Core {
 		}
 	}
 
+	public static List<Integer> getAPIVersion() throws Exception {
+		return getAPIVersion(null);
+	}
+
 	/**
 	 * This method is used to get the API version in a single string
-	 * 
-	 * @param varargs Array of optional arguments
-	 *                <p>
-	 *                pmacoreURL : First optional argument(String), default
-	 *                value(Class field pmaCoreLiteURL), url of PMA.core instance
-	 *                </p>
+	 *
+	 * @param pmaCoreURL default value(Class field pmaCoreLiteURL), url of
+	 *                      PMA.core instance
 	 * @return API version in a single string
 	 * @throws Exception If GetAPIVersion isn't available on the API
-	 * 
+	 *
 	 */
-	public static String getAPIVersionString(String... varargs) throws Exception {
-		// setting the default values when arguments' values are omitted
-		String pmaCoreURL = varargs.length > 0 ? varargs[0] : pmaCoreLiteURL;
+	public static String getAPIVersionString(String pmaCoreURL) throws Exception {
+		pmaCoreURL = pmaCoreURL == null ? pmaCoreLiteURL : pmaCoreURL;
 		List<Integer> version = getAPIVersion(pmaCoreURL);
 		String versionString = version.stream().map(n -> (n + ".")).collect(Collectors.joining("", "", ""));
 		return versionString.substring(0, versionString.length() - 1);
+	}
+
+	public static String getAPIVersionString() throws Exception {
+		return getAPIVersionString(null);
 	}
 
 	/**
 	 * This method is used to authenticate &amp; connect to a PMA.core instance
 	 * using credentials
 	 *
-	 * @param varargs Array of optional arguments
-	 *                <p>
-	 *                pmacoreURL : First optional argument(String), default
-	 *                value(Class field pmaCoreLiteURL), url of PMA.core instance
-	 *                </p>
-	 *                <p>
-	 *                pmacoreUsername : Second optional argument(String), default
-	 *                value(""), username for PMA.core instance
-	 *                </p>
-	 *                <p>
-	 *                pmacorePassword : Third optional argument(String), default
-	 *                value(""), password for PMA.core instance
-	 *                </p>
+	 * @param pmaCoreURL  url of PMA.core instance
+	 * @param pmaCoreUsername : username for PMA.core instance
+	 * @param pmaCorePassword password for PMA.core instance
 	 * @return session's ID if session was created successfully, otherwise null
 	 */
-	public static String connect(String... varargs) {
-		// setting the default values when arguments' values are omitted
-		String pmaCoreURL = varargs.length > 0 ? varargs[0] : pmaCoreLiteURL;
-		String pmaCoreUsername = varargs.length > 1 ? varargs[1] : "";
-		String pmaCorePassword = varargs.length > 2 ? varargs[2] : "";
+	public static String connect(String pmaCoreURL, String pmaCoreUsername, String pmaCorePassword) {
+		pmaCoreURL = pmaCoreURL == null  ? pmaCoreLiteURL : pmaCoreURL;
+		pmaCoreUsername = pmaCoreUsername == null ? "" : pmaCoreUsername;
+		pmaCorePassword = pmaCorePassword == null ? "" : pmaCorePassword;
 		// Attempt to connect to PMA.core instance; success results in a SessionID
 		if (pmaCoreURL.equals(pmaCoreLiteURL)) {
 			if (isLite()) {
@@ -626,22 +582,26 @@ public class Core {
 		}
 	}
 
+	public static String connect(String pmaCoreURL, String pmaCoreUsername) {
+		return connect(pmaCoreURL, pmaCoreUsername, null);
+	}
+
+	public static String connect(String pmaCoreURL) {
+		return connect(pmaCoreURL, null, null);
+	}
+
+	public static String connect() {
+		return connect(null, null, null);
+	}
+
 	/**
 	 * This method is used to disconnect from a running PMA.core instance
-	 * 
-	 * @param varargs Array of optional arguments
-	 *                <p>
-	 *                sessionID : First optional argument(String), default
-	 *                value(null), session's ID
-	 *                </p>
+	 *
+	 * @param sessionID  default session's ID
 	 * @return true if there was a PMA.core instance running to disconnect from,
 	 *         false otherwise
 	 */
-	public static Boolean disconnect(String... varargs) {
-		// setting the default value when argument's value is omitted
-		String sessionID = varargs.length > 0 ? varargs[0] : null;
-		// Disconnect from a PMA.core instance; return True if session exists; return
-		// False if session didn't exist (anymore)
+	public static Boolean disconnect(String sessionID) {
 		sessionID = sessionId(sessionID);
 		String url = apiUrl(sessionID, false) + "DeAuthenticate?sessionID=" + PMA.pmaQ((sessionID));
 		String contents = PMA.httpGet(url, "application/json");
@@ -658,22 +618,20 @@ public class Core {
 		}
 	}
 
+	public static Boolean disconnect() {
+		return disconnect(null);
+	}
+
 	/**
 	 * This method is used to test if sessionID is valid and the server is online
 	 * and reachable This method works only for PMA.core, don't use it for PMA.start
 	 * for it will return always false
-	 * 
-	 * @param varargs Array of optional arguments
-	 *                <p>
-	 *                sessionID : First optional argument(String), default
-	 *                value(null), session's ID
-	 *                </p>
+	 *
+	 * @param sessionID session's ID
 	 * @return true if sessionID is valid and the server is online and reachable,
 	 *         false otherwise
 	 */
-	public static boolean ping(String... varargs) {
-		// setting the default value when argument's value is omitted
-		String sessionID = varargs.length > 0 ? varargs[0] : null;
+	public static boolean ping(String sessionID) {
 		sessionID = sessionId(sessionID);
 		String url = apiUrl(sessionID, false) + "Ping?sessionID=" + PMA.pmaQ(sessionID);
 		try {
@@ -699,19 +657,17 @@ public class Core {
 		}
 	}
 
+	public static boolean ping() {
+		return ping(null);
+	}
+
 	/**
 	 * This method is used to get root-directories available for a sessionID
-	 * 
-	 * @param varargs Array of optional arguments
-	 *                <p>
-	 *                sessionID : First optional argument(String), default
-	 *                value(null), session's ID
-	 *                </p>
+	 *
+	 * @param sessionID session's ID
 	 * @return Array of root-directories available to a session's ID
 	 */
-	public static List<String> getRootDirectories(String... varargs) {
-		// setting the default value when argument's value is omitted
-		String sessionID = varargs.length > 0 ? varargs[0] : null;
+	public static List<String> getRootDirectories(String sessionID) {
 		// Return a list of root-directories available to sessionID
 		sessionID = sessionId(sessionID);
 		try {
@@ -752,65 +708,24 @@ public class Core {
 		}
 	}
 
+	public static List<String> getRootDirectories() {
+		return getRootDirectories(null);
+	}
+
 	/**
 	 * This method is used to get sub-directories available to sessionID in the
 	 * start directory following a recursive (or not) approach
-	 * 
+	 *
 	 * @param startDir Start directory
-	 * @param varargs  Array of optional arguments
-	 *                 <p>
-	 *                 sessionID : First optional argument(String), default
-	 *                 value(null), session's ID
-	 *                 </p>
-	 *                 <p>
-	 *                 recursivity : Second optional argument(Boolean or Integer),
-	 *                 default value(Boolean, false), if it's a Boolean if defines
-	 *                 either no recursivity or a limitless recursivity, if it's an
-	 *                 Integer it defines a limited in depth recursivity or no
-	 *                 recursivity at all if this Integer equals 0
-	 *                 </p>
+	 * @param sessionID default value(null), session's ID
+	 * @param recursive
 	 * @return Sub-directories available to a session's ID in a start directory
 	 */
-	public static List<String> getDirectories(String startDir, Object... varargs) {
-		// setting the default values when arguments' values are omitted
-		String sessionID = null;
-		// we can either choose to have a non recursive call, a complete recursive call
-		// or a recursive call to a certain depth, in the last case we use an integer to
-		// define
-		// depth
-		// the following three variables intend to implement this
-		Boolean recursive = false;
-		Integer integerRecursive = 0;
-		String booleanOrInteger = "";
-		if (varargs.length > 0) {
-			if (!(varargs[0] instanceof String) && varargs[0] != null) {
-				if (PMA.logger != null) {
-					PMA.logger.severe("getDirectories() : Invalid argument");
-				}
-				throw new IllegalArgumentException("...");
-			}
-			sessionID = (String) varargs[0];
-		}
-		if (varargs.length > 1) {
-			if ((!(varargs[1] instanceof Integer) && !(varargs[1] instanceof Boolean)) && (varargs[1] != null)) {
-				if (PMA.logger != null) {
-					PMA.logger.severe("getDirectories() : Invalid argument");
-				}
-				throw new IllegalArgumentException("...");
-			}
-			if (varargs[1] instanceof Boolean) {
-				recursive = (Boolean) varargs[1];
-				booleanOrInteger = "boolean";
-			}
-			if (varargs[1] instanceof Integer) {
-				integerRecursive = (Integer) varargs[1];
-				recursive = ((Integer) varargs[1]) > 0 ? true : false;
-				booleanOrInteger = "integer";
-			}
-		}
-
-		// Return a list of sub-directories available to sessionID in the startDir
-		// directory
+	public static List<String> getDirectories(String startDir,
+											  String sessionID,
+											  Boolean recursive
+											  ) {
+		recursive = recursive == null ? false : recursive;
 		sessionID = sessionId(sessionID);
 		String url = apiUrl(sessionID, false) + "GetDirectories?sessionID=" + PMA.pmaQ(sessionID) + "&path="
 				+ PMA.pmaQ(startDir);
@@ -845,7 +760,6 @@ public class Core {
 					for (int i = 0; i < array.length(); i++) {
 						dirs.add(array.optString(i));
 					}
-					// return dirs;
 				} else {
 					return null;
 				}
@@ -857,18 +771,10 @@ public class Core {
 				for (int i = 0; i < jsonResponse.length(); i++) {
 					dirs.add(jsonResponse.optString(i));
 				}
-				// return dirs;
 			}
-
-			// we test if call is recursive, and if yes to which depth
 			if (recursive) {
 				for (String dir : getDirectories(startDir, sessionID)) {
-					if (booleanOrInteger.equals("boolean")) {
-						dirs.addAll(getDirectories(dir, sessionID, recursive));
-					}
-					if (booleanOrInteger.equals("integer")) {
-						dirs.addAll(getDirectories(dir, sessionID, integerRecursive - 1));
-					}
+					dirs.addAll(getDirectories(dir, sessionID, recursive));
 				}
 			}
 			return dirs;
@@ -884,24 +790,96 @@ public class Core {
 		}
 	}
 
+	public static List<String> getDirectories(String startDir,
+											  String sessionID,
+											  Integer integerRecursive) {
+		sessionID = sessionId(sessionID);
+		Boolean recursive;
+		if (integerRecursive != null) {
+			recursive = integerRecursive > 0;
+		} else {
+			recursive = false;
+		}
+		String url = apiUrl(sessionID, false) + "GetDirectories?sessionID=" + PMA.pmaQ(sessionID) + "&path="
+				+ PMA.pmaQ(startDir);
+		if (PMA.debug) {
+			System.out.println(url);
+		}
+		try {
+			URL urlResource = new URL(url);
+			HttpURLConnection con;
+			if (url.startsWith("https")) {
+				con = (HttpsURLConnection) urlResource.openConnection();
+			} else {
+				con = (HttpURLConnection) urlResource.openConnection();
+			}
+			con.setRequestMethod("GET");
+			String jsonString = PMA.getJSONAsStringBuffer(con).toString();
+			List<String> dirs;
+			if (PMA.isJSONObject(jsonString)) {
+				JSONObject jsonResponse = PMA.getJSONObjectResponse(jsonString);
+				pmaAmountOfDataDownloaded.put(sessionID,
+						pmaAmountOfDataDownloaded.get(sessionID) + jsonResponse.length());
+				if (jsonResponse.has("Code")) {
+					if (PMA.logger != null) {
+						PMA.logger.severe("get_directories to " + startDir + " resulted in: "
+								+ jsonResponse.get("Message") + " (keep in mind that startDir is case sensitive!)");
+					}
+					throw new Exception("get_directories to " + startDir + " resulted in: "
+							+ jsonResponse.get("Message") + " (keep in mind that startDir is case sensitive!)");
+				} else if (jsonResponse.has("d")) {
+					JSONArray array = jsonResponse.getJSONArray("d");
+					dirs = new ArrayList<>();
+					for (int i = 0; i < array.length(); i++) {
+						dirs.add(array.optString(i));
+					}
+				} else {
+					return null;
+				}
+			} else {
+				JSONArray jsonResponse = PMA.getJSONArrayResponse(jsonString);
+				pmaAmountOfDataDownloaded.put(sessionID,
+						pmaAmountOfDataDownloaded.get(sessionID) + jsonResponse.length());
+				dirs = new ArrayList<>();
+				for (int i = 0; i < jsonResponse.length(); i++) {
+					dirs.add(jsonResponse.optString(i));
+				}
+			}
+
+			if (recursive) {
+				for (String dir : getDirectories(startDir, sessionID)) {
+					dirs.addAll(getDirectories(dir, sessionID, integerRecursive - 1));
+				}
+			}
+			return dirs;
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			if (PMA.logger != null) {
+				StringWriter sw = new StringWriter();
+				e.printStackTrace(new PrintWriter(sw));
+				PMA.logger.severe(sw.toString());
+			}
+			return null;
+		}
+	}
+
+	public static List<String> getDirectories(String startDir, String sessionID) {
+		return getDirectories(startDir, sessionID, 0);
+	}
+
+	public static List<String> getDirectories(String startDir) {
+		return getDirectories(startDir, null, 0);
+	}
+
 	/**
 	 * This method is used to get the first non empty directory
-	 * 
-	 * @param varargs Array of optional arguments
-	 *                <p>
-	 *                startDir : First optional argument(String), default
-	 *                value(null), start directory
-	 *                </p>
-	 *                <p>
-	 *                sessionID : Second optional argument(String), default
-	 *                value(null), session's ID
-	 *                </p>
+	 *
+	 * @param startDir start directory
+	 * @param sessionID session's ID
 	 * @return Path to the first non empty directory found
 	 */
-	public static String getFirstNonEmptyDirectory(String... varargs) {
-		// setting the default values when arguments' values are omitted
-		String startDir = varargs.length > 0 ? varargs[0] : null;
-		String sessionID = varargs.length > 1 ? varargs[1] : null;
+	public static String getFirstNonEmptyDirectory(String startDir, String sessionID) {
 		if ((startDir == null) || (startDir.equals(""))) {
 			startDir = "/";
 		}
@@ -955,63 +933,104 @@ public class Core {
 		}
 	}
 
+	public static String getFirstNonEmptyDirectory(String startDir) {
+		return getFirstNonEmptyDirectory(startDir, null);
+	}
+
+	public static String getFirstNonEmptyDirectory() {
+		return getFirstNonEmptyDirectory(null, null);
+	}
+
 	/**
 	 * This method is used to get a list of slides available to sessionID in the
 	 * start directory following a recursive (or not) approach
-	 * 
+	 *
 	 * @param startDir Start directory
-	 * @param varargs  Array of optional arguments
-	 *                 <p>
-	 *                 sessionID : First optional argument(String), default
-	 *                 value(null), session's ID
-	 *                 </p>
-	 *                 <p>
-	 *                 recursivity : Second optional argument(Boolean or Integer),
-	 *                 default value(Boolean, false), if it's a Boolean if defines
-	 *                 either no recursivity or a limitless recursivity, if it's an
+	 * @param sessionID session's ID
+	 * @param recursive if it's a Boolean if defines
+	 *                 either no recursive or a limitless recursivity, if
+	 *                     it's an
 	 *                 Integer it defines a limited in depth recursivity or no
 	 *                 recursivity at all if this Integer equals 0
-	 *                 </p>
 	 * @return List of slides available to a session's ID in a start directory
 	 */
-	public static List<String> getSlides(String startDir, Object... varargs) {
-		// setting the default values when arguments' values are omitted
-		String sessionID = null;
-		// we can either choose to have a non recursive call, a complete recursive call
-		// or a recursive call to a certain depth, in the last case we use an integer to
-		// define
-		// depth
-		// the following three variables intend to implement this
-		String booleanOrInteger = "";
-		Boolean recursive = false;
-		Integer integerRecursive = 0;
-		if (varargs.length > 0) {
-			if (!(varargs[0] instanceof String) && varargs[0] != null) {
-				if (PMA.logger != null) {
-					PMA.logger.severe("getSlides() : Invalid argument");
-				}
-				throw new IllegalArgumentException("...");
-			}
-			sessionID = (String) varargs[0];
+	public static List<String> getSlides(String startDir, String sessionID, Boolean recursive) {
+		// Return a list of slides available to sessionID in the startDir directory
+		recursive = recursive == null ? false : recursive;
+		sessionID = sessionId(sessionID);
+		if (startDir.startsWith("/")) {
+			startDir = startDir.substring(1);
 		}
-		if (varargs.length > 1) {
-			if ((!(varargs[1] instanceof Integer) && !(varargs[1] instanceof Boolean)) && (varargs[1] != null)) {
-				if (PMA.logger != null) {
-					PMA.logger.severe("getSlides() : Invalid argument");
+		String url = apiUrl(sessionID, false) + "GetFiles?sessionID=" + PMA.pmaQ(sessionID) + "&path="
+				+ PMA.pmaQ(startDir);
+		try {
+			URL urlResource = new URL(url);
+			HttpURLConnection con;
+			if (url.startsWith("https")) {
+				con = (HttpsURLConnection) urlResource.openConnection();
+			} else {
+				con = (HttpURLConnection) urlResource.openConnection();
+			}
+			con.setRequestMethod("GET");
+			String jsonString = PMA.getJSONAsStringBuffer(con).toString();
+			List<String> slides;
+			if (PMA.isJSONObject(jsonString)) {
+				JSONObject jsonResponse = PMA.getJSONObjectResponse(jsonString);
+				pmaAmountOfDataDownloaded.put(sessionID,
+						pmaAmountOfDataDownloaded.get(sessionID) + jsonResponse.length());
+				if (jsonResponse.has("Code")) {
+					if (PMA.logger != null) {
+						PMA.logger.severe("get_slides from " + startDir + " resulted in: " + jsonResponse.get("Message")
+								+ " (keep in mind that startDir is case sensitive!)");
+					}
+					throw new Exception("get_slides from " + startDir + " resulted in: " + jsonResponse.get("Message")
+							+ " (keep in mind that startDir is case sensitive!)");
+				} else if (jsonResponse.has("d")) {
+					JSONArray array = jsonResponse.getJSONArray("d");
+					slides = new ArrayList<>();
+					for (int i = 0; i < array.length(); i++) {
+						slides.add(array.optString(i));
+					}
+					// return slides;
+				} else {
+					return null;
 				}
-				throw new IllegalArgumentException("...");
+			} else {
+				JSONArray jsonResponse = PMA.getJSONArrayResponse(jsonString);
+				pmaAmountOfDataDownloaded.put(sessionID,
+						pmaAmountOfDataDownloaded.get(sessionID) + jsonResponse.length());
+				slides = new ArrayList<>();
+				for (int i = 0; i < jsonResponse.length(); i++) {
+					slides.add(jsonResponse.optString(i));
+				}
+				// return slides;
 			}
-			if (varargs[1] instanceof Boolean) {
-				recursive = (Boolean) varargs[1];
-				booleanOrInteger = "boolean";
-			}
-			if (varargs[1] instanceof Integer) {
-				integerRecursive = (Integer) varargs[1];
-				recursive = ((Integer) varargs[1]) > 0 ? true : false;
-				booleanOrInteger = "integer";
-			}
-		}
 
+			// we test if call is recursive, and if yes to which depth
+			if (recursive) {
+				for (String dir : getDirectories(startDir, sessionID)) {
+					slides.addAll(getSlides(dir, sessionID, recursive));
+				}
+			}
+			return slides;
+		} catch (Exception e) {
+			e.printStackTrace();
+			if (PMA.logger != null) {
+				StringWriter sw = new StringWriter();
+				e.printStackTrace(new PrintWriter(sw));
+				PMA.logger.severe(sw.toString());
+			}
+			return null;
+		}
+	}
+
+	public static List<String> getSlides(String startDir, String sessionID, Integer integerRecursive) {
+		Boolean recursive;
+		if (integerRecursive != null) {
+			recursive = integerRecursive > 0;
+		} else {
+			recursive = false;
+		}
 		// Return a list of slides available to sessionID in the startDir directory
 		sessionID = sessionId(sessionID);
 		if (startDir.startsWith("/")) {
@@ -1065,12 +1084,7 @@ public class Core {
 			// we test if call is recursive, and if yes to which depth
 			if (recursive) {
 				for (String dir : getDirectories(startDir, sessionID)) {
-					if (booleanOrInteger.equals("boolean")) {
-						slides.addAll(getSlides(dir, sessionID, recursive));
-					}
-					if (booleanOrInteger.equals("integer")) {
-						slides.addAll(getSlides(dir, sessionID, integerRecursive - 1));
-					}
+					slides.addAll(getSlides(dir, sessionID, integerRecursive - 1));
 				}
 			}
 			return slides;
@@ -1085,9 +1099,18 @@ public class Core {
 		}
 	}
 
+	public static List<String> getSlides(String startDir, String sessionID) {
+		return getSlides(startDir, sessionID, 0);
+	}
+
+
+	public static List<String> getSlides(String startDir) {
+		return getSlides(startDir, null, 0);
+	}
+
 	/**
 	 * This method is used to determine the file extension for a slide's path
-	 * 
+	 *
 	 * @param slideRef slide's path
 	 * @return File extension extracted from a slide's path
 	 */
@@ -1099,7 +1122,7 @@ public class Core {
 	/**
 	 * This method is used to determine file name (with extension) for a slide's
 	 * path
-	 * 
+	 *
 	 * @param slideRef slide's path
 	 * @return File name extracted from a slide's path
 	 */
@@ -1110,20 +1133,13 @@ public class Core {
 
 	/**
 	 * This method is used to get the UID for a defined slide
-	 * 
+	 *
 	 * @param slideRef slide's path
-	 * @param varargs  Array of optional arguments
-	 *                 <p>
-	 *                 sessionID : First optional argument(String), default
-	 *                 value(null), session's ID
-	 *                 </p>
+	 * @param sessionID session's ID
 	 * @return UID for a defined slide's path
 	 * @throws Exception if PMA.core not found
 	 */
-	public static String getUid(String slideRef, String... varargs) throws Exception {
-		// setting the default value when arguments' value is omitted
-		String sessionID = varargs.length > 0 ? varargs[0] : null;
-		// Get the UID for a specific slide
+	public static String getUid(String slideRef, String sessionID) throws Exception {
 		sessionID = sessionId(sessionID);
 		if (sessionID.equals(pmaCoreLiteSessionID)) {
 			if (isLite()) {
@@ -1173,20 +1189,20 @@ public class Core {
 		}
 	}
 
+	public static String getUid(String slideRef) throws Exception {
+		return getUid(slideRef, null);
+	}
+
 	/**
 	 * This method is used to get the fingerprint for a specific slide
-	 * 
+	 *
 	 * @param slideRef slide's path
-	 * @param varargs  Array of optional arguments
-	 *                 <p>
-	 *                 sessionID : First optional argument(String), default
+	 * @param sessionID : First optional argument(String), default
 	 *                 value(null), session's ID
 	 *                 </p>
 	 * @return Fingerprint of the slide
 	 */
-	public static String getFingerPrint(String slideRef, String... varargs) {
-		// setting the default value when arguments' value is omitted
-		String sessionID = varargs.length > 0 ? varargs[0] : null;
+	public static String getFingerPrint(String slideRef, String sessionID) {
 		// Get the fingerprint for a specific slide
 		sessionID = sessionId(sessionID);
 		String fingerprint;
@@ -1233,19 +1249,17 @@ public class Core {
 		return fingerprint;
 	}
 
+	public static String getFingerPrint(String slideRef) {
+		return getFingerPrint(null);
+	}
+
 	/**
 	 * This method is used to get information about a session
-	 * 
-	 * @param varargs Array of optional arguments
-	 *                <p>
-	 *                sessionID : First optional argument(String), default
-	 *                value(null), session's ID
-	 *                </p>
+	 *
+	 * @param sessionID session's ID
 	 * @return Information about a session
 	 */
-	public static Map<String, String> whoAmI(String... varargs) {
-		// setting the default value when arguments' value is omitted
-		String sessionID = varargs.length > 0 ? varargs[0] : null;
+	public static Map<String, String> whoAmI(String sessionID) {
 		// Getting information about your Session
 		sessionID = sessionId(sessionID);
 		Map<String, String> retval = null;
@@ -1270,25 +1284,22 @@ public class Core {
 				}
 			}
 		}
-
 		return retval;
+	}
+
+	public static Map<String, String> whoAmI() {
+		return whoAmI(null);
 	}
 
 	/**
 	 * This method is used to get tile size information for sessionID
-	 * 
-	 * @param varargs Array of optional arguments
-	 *                <p>
-	 *                sessionID : First optional argument(String), default
-	 *                value(null), session's ID
-	 *                </p>
+	 *
+	 * @param sessionID session's ID
 	 * @return A list of two items (duplicated) relative to the tile size
 	 *         information for a session's ID
 	 */
 	@SuppressWarnings("unchecked")
-	public static List<Integer> getTileSize(String... varargs) {
-		// setting the default value when arguments' value is omitted
-		String sessionID = varargs.length > 0 ? varargs[0] : null;
+	public static List<Integer> getTileSize(String sessionID) {
 		sessionID = sessionId(sessionID);
 		Map<String, Object> info;
 		if (((Map<String, Object>) pmaSlideInfos.get(sessionID)).size() < 1) {
@@ -1306,21 +1317,19 @@ public class Core {
 		return result;
 	}
 
+	public static List<Integer> getTileSize(){
+		return getTileSize(null);
+	}
+
 	/**
 	 * This method is used to get a raw image in the form of nested maps
-	 * 
+	 *
 	 * @param slideRef slide's path or UID
-	 * @param varargs  Array of optional arguments
-	 *                 <p>
-	 *                 sessionID : First optional argument(String), default
-	 *                 value(null), session's ID
-	 *                 </p>
+	 * @param sessionID
 	 * @return Nested maps forming a raw image
 	 */
 	@SuppressWarnings("unchecked")
-	public static Map<String, Object> getSlideInfo(String slideRef, String... varargs) {
-		// setting the default value when arguments' value is omitted
-		String sessionID = varargs.length > 0 ? varargs[0] : null;
+	public static Map<String, Object> getSlideInfo(String slideRef, String sessionID) {
 		// Return raw image information in the form of nested maps
 		sessionID = sessionId(sessionID);
 		if (slideRef.startsWith("/")) {
@@ -1395,21 +1404,19 @@ public class Core {
 		return (Map<String, Object>) ((Map<String, Object>) pmaSlideInfos.get(sessionID)).get(slideRef);
 	}
 
+	public static Map<String, Object> getSlideInfo(String slideRef) {
+		return getSlideInfo(null);
+	}
+
 	/**
 	 * This method is used to get raw images in the form of nested maps
-	 * 
+	 *
 	 * @param slideRefs List of slides' path or UID
-	 * @param varargs   Array of optional arguments
-	 *                  <p>
-	 *                  sessionID : First optional argument(String), default
-	 *                  value(null), session's ID
-	 *                  </p>
+	 * @param sessionID  session's ID
 	 * @return Nested maps forming raw images
 	 */
 	@SuppressWarnings("unchecked")
-	public static Map<String, Map<String, Object>> getSlidesInfo(List<String> slideRefs, String... varargs) {
-		// setting the default value when arguments' value is omitted
-		String sessionID = varargs.length > 0 ? varargs[0] : null;
+	public static Map<String, Map<String, Object>> getSlidesInfo(List<String> slideRefs, String sessionID) {
 		// Return raw image information in the form of nested maps
 		sessionID = sessionId(sessionID);
 		List<String> slideRefsNew = new ArrayList<>();
@@ -1515,23 +1522,22 @@ public class Core {
 		return results;
 	}
 
+	public static Map<String, Map<String, Object>> getSlidesInfo(List<String> slideRefs) {
+		return getSlidesInfo(slideRefs, null);
+	}
+
 	/**
 	 * This method is used to determine the maximum zoom level that still represents
 	 * an optical magnification
-	 * 
+	 *
 	 * @param slideRef slide's path
-	 * @param varargs  Array of optional arguments
-	 *                 <p>
-	 *                 sessionID : First optional argument(String), default
-	 *                 value(null), session's ID
-	 *                 </p>
+	 * @param sessionID session's ID
 	 * @return Max zoom level that still represents an optical magnification
 	 */
-	public static int getMaxZoomLevel(String slideRef, String... varargs) {
-		// setting the default value when arguments' value is omitted
-		String sessionID = varargs.length > 0 ? varargs[0] : null;
+	public static int getMaxZoomLevel(String slideRef, String sessionID) {
 		// Determine the maximum zoomlevel that still represents an optical
 		// magnification
+		sessionID = sessionId(sessionID);
 		Map<String, Object> info = getSlideInfo(slideRef, sessionID);
 		if (info == null) {
 			System.out.print("Unable to get information for " + slideRef + " from " + sessionID);
@@ -1571,52 +1577,36 @@ public class Core {
 		}
 	}
 
+	public static int getMaxZoomLevel(String slideRef) {
+		return getMaxZoomLevel(null);
+	}
+
 	/**
 	 * This method is used to get list with all zoom levels, from 0 to max zoom
 	 * level
-	 * 
+	 *
 	 * @param slideRef slide's path
-	 * @param varargs  Array of optional arguments
-	 *                 <p>
-	 *                 sessionID : First optional argument(String), default
-	 *                 value(null), session's ID
-	 *                 </p>
-	 *                 <p>
-	 *                 minNumberOfTiles : Second optional argument(Integer), default
-	 *                 value(0), minimal number of tiles used to specify that you're
-	 *                 only interested in zoom levels that include at least a given
-	 *                 number of tiles
-	 *                 </p>
+	 * @param sessionID default value(null), session's ID
+	 * @param minNumberOfTiles default value(0), minimal number of tiles used
 	 * @return List with all zoom levels, from 0 to max zoom level
 	 */
-	public static List<Integer> getZoomLevelsList(String slideRef, Object... varargs) {
-		// setting the default values when arguments' values are omitted
-		String sessionID = null;
-		Integer minNumberOfTiles = 0;
-		if (varargs.length > 0) {
-			if (!(varargs[0] instanceof String) && varargs[0] != null) {
+	public static List<Integer> getZoomLevelsList(String slideRef,
+												  String sessionID,
+												  Integer minNumberOfTiles) {
+		minNumberOfTiles = minNumberOfTiles == null ? 0 : minNumberOfTiles;
 				if (PMA.logger != null) {
 					PMA.logger.severe("getZoomLevelsList() : Invalid argument");
 				}
-				throw new IllegalArgumentException("...");
-			}
-			sessionID = (String) varargs[0];
-		}
-		if (varargs.length > 1) {
-			if (!(varargs[1] instanceof Integer) && varargs[1] != null) {
-				if (PMA.logger != null) {
-					PMA.logger.severe("getZoomLevelsList() : Invalid argument");
+				else {
+					throw new IllegalArgumentException("...");
 				}
-				throw new IllegalArgumentException("...");
-			}
-			minNumberOfTiles = (Integer) varargs[1];
-		}
 		// Obtain a list with all zoom levels, starting with 0 and up to and including
 		// max zoom level
 		// Use min_number_of_tiles argument to specify that you're only interested in
 		// zoom levels that include at lease a given number of tiles
 		List<Integer> result = new ArrayList<>();
-		Set<Integer> set = getZoomLevelsDict(slideRef, sessionID, minNumberOfTiles).keySet();
+		Set<Integer> set = getZoomLevelsDict(slideRef, sessionID,
+				minNumberOfTiles).keySet();
 		for (Integer i : set) {
 			result.add(i);
 		}
@@ -1624,45 +1614,27 @@ public class Core {
 		return result;
 	}
 
+	public static List<Integer> getZoomLevelsList(String slideRef) {
+		return getZoomLevelsList(slideRef, null, null);
+	}
+
+	public static List<Integer> getZoomLevelsList(String slideRef, String sessionID) {
+		return getZoomLevelsList(slideRef, sessionID, null);
+	}
+
+
 	/**
 	 * This method is used to get a map with the number of tiles per zoom level
-	 * 
+	 *
 	 * @param slideRef slide's path
-	 * @param varargs  Array of optional arguments
-	 *                 <p>
-	 *                 sessionID : First optional argument(String), default
-	 *                 value(null), session's ID
-	 *                 </p>
-	 *                 <p>
-	 *                 minNumberOfTiles : Second optional argument(Integer), default
-	 *                 value(0), minimal number of tiles used to specify that you're
+	 * @param sessionID session's ID
+	 * @param minNumberOfTiles minimal number of tiles used to specify that you're
 	 *                 only interested in zoom levels that include at least a given
 	 *                 number of tiles
-	 *                 </p>
 	 * @return Map with the number of tiles per zoom level
 	 */
-	public static Map<Integer, List<Integer>> getZoomLevelsDict(String slideRef, Object... varargs) {
-		// setting the default values when arguments' values are omitted
-		String sessionID = null;
-		Integer minNumberOfTiles = 0;
-		if (varargs.length > 0) {
-			if (!(varargs[0] instanceof String) && varargs[0] != null) {
-				if (PMA.logger != null) {
-					PMA.logger.severe("getZoomLevelsDict() : Invalid argument");
-				}
-				throw new IllegalArgumentException("...");
-			}
-			sessionID = (String) varargs[0];
-		}
-		if (varargs.length > 1) {
-			if (!(varargs[1] instanceof Integer) && varargs[1] != null) {
-				if (PMA.logger != null) {
-					PMA.logger.severe("getZoomLevelsDict() : Invalid argument");
-				}
-				throw new IllegalArgumentException("...");
-			}
-			minNumberOfTiles = (Integer) varargs[1];
-		}
+	public static Map<Integer, List<Integer>> getZoomLevelsDict(String slideRef, String sessionID, Integer minNumberOfTiles) {
+		minNumberOfTiles = minNumberOfTiles == null ? 0 : minNumberOfTiles;
 		// Obtain a map with the number of tiles per zoom level.
 		// Information is returned as (x, y, n) lists per zoom level, with
 		// x = number of horizontal tiles,
@@ -1689,45 +1661,28 @@ public class Core {
 		return d;
 	}
 
+	public static Map<Integer, List<Integer>> getZoomLevelsDict(String slideRef, String sessionID) {
+		return getZoomLevelsDict(slideRef, sessionID, null);
+	}
+
+	public static Map<Integer, List<Integer>> getZoomLevelsDict(String slideRef) {
+		return getZoomLevelsDict(slideRef, null, null);
+	}
+
 	/**
 	 * This method is used to get the physical dimension in terms of pixels per
 	 * micrometer of a slide
-	 * 
+	 *
 	 * @param slideRef slide's path
-	 * @param varargs  Array of optional arguments
-	 *                 <p>
-	 *                 zoomLevel : First optional argument(Integer), default
-	 *                 value(null), zoom level
-	 *                 </p>
-	 *                 <p>
-	 *                 sessionID : Second optional argument(String), default
-	 *                 value(null), session's ID
-	 *                 </p>
+	 * @param zoomLevel :zoom level
+	 * @param  sessionID session's ID
 	 * @return Two items list containing the physical dimension in terms of pixels
 	 *         per micrometer of a slide
 	 */
-	public static List<Float> getPixelsPerMicrometer(String slideRef, Object... varargs) {
-		// setting the default values when arguments' values are omitted
-		Integer zoomLevel = null;
-		String sessionID = null;
-		if (varargs.length > 0) {
-			if (!(varargs[0] instanceof Integer) && varargs[0] != null) {
-				if (PMA.logger != null) {
-					PMA.logger.severe("getZoomLevelsDict() : Invalid argument");
-				}
-				throw new IllegalArgumentException("...");
-			}
-			zoomLevel = (Integer) varargs[0];
-		}
-		if (varargs.length > 1) {
-			if (!(varargs[1] instanceof String) && varargs[1] != null) {
-				if (PMA.logger != null) {
-					PMA.logger.severe("getZoomLevelsDict() : Invalid argument");
-				}
-				throw new IllegalArgumentException("...");
-			}
-			sessionID = (String) varargs[1];
-		}
+	public static List<Float> getPixelsPerMicrometer(String slideRef,
+													 Integer zoomLevel,
+													 String sessionID) {
+		zoomLevel = zoomLevel == null ? 0 : zoomLevel;
 		// Retrieve the physical dimension in terms of pixels per micrometer.
 		// When zoom level is left to its default value of None, dimensions at the
 		// highest zoom level are returned
@@ -1750,45 +1705,34 @@ public class Core {
 		}
 	}
 
+	public static List<Float> getPixelsPerMicrometer(String slideRef,
+													 Integer zoomLevel) {
+		return getPixelsPerMicrometer(slideRef, zoomLevel, null);
+	}
+
+	public static List<Float> getPixelsPerMicrometer(String slideRef) {
+		return getPixelsPerMicrometer(slideRef, null, null);
+	}
+
+	public static List<Float> getPixelsPerMicrometer(String slideRef,
+													 String sessionID) {
+		return getPixelsPerMicrometer(slideRef, null, sessionID);
+	}
+
 	/**
 	 * This method is used to get the total dimensions of a slide image at a given
 	 * zoom level
-	 * 
+	 *
 	 * @param slideRef slide's path
-	 * @param varargs  Array of optional arguments
-	 *                 <p>
-	 *                 zoomLevel : First optional argument(Integer), default
-	 *                 value(null), zoom level
-	 *                 </p>
-	 *                 <p>
-	 *                 sessionID : Second optional argument(String), default
-	 *                 value(null), session's ID
-	 *                 </p>
+	 * @param zoomLevel zoom level
+	 * @param sessionID session's ID
 	 * @return Two items list with the total dimensions of a slide image at a given
 	 *         zoom level
 	 */
-	public static List<Integer> getPixelDimensions(String slideRef, Object... varargs) {
-		// setting the default values when arguments' values are omitted
-		Integer zoomLevel = null;
-		String sessionID = null;
-		if (varargs.length > 0) {
-			if (!(varargs[0] instanceof Integer) && varargs[0] != null) {
-				if (PMA.logger != null) {
-					PMA.logger.severe("getPixelDimensions() : Invalid argument");
-				}
-				throw new IllegalArgumentException("...");
-			}
-			zoomLevel = (Integer) varargs[0];
-		}
-		if (varargs.length > 1) {
-			if (!(varargs[1] instanceof String) && varargs[1] != null) {
-				if (PMA.logger != null) {
-					PMA.logger.severe("getPixelDimensions() : Invalid argument");
-				}
-				throw new IllegalArgumentException("...");
-			}
-			sessionID = (String) varargs[1];
-		}
+	public static List<Integer> getPixelDimensions(String slideRef,
+												   Integer zoomLevel,
+												   String sessionID) {
+		zoomLevel = zoomLevel == null ? 0 : zoomLevel;
 		// Get the total dimensions of a slide image at a given zoom level
 		int maxZoomLevel = getMaxZoomLevel(slideRef, sessionID);
 		Map<String, Object> info = getSlideInfo(slideRef, sessionID);
@@ -1805,45 +1749,34 @@ public class Core {
 		}
 	}
 
+	public static List<Integer> getPixelDimensions(String slideRef,
+												   Integer zoomLevel) {
+		return getPixelDimensions(slideRef, zoomLevel, null);
+	}
+
+	public static List<Integer> getPixelDimensions(String slideRef) {
+		return getPixelDimensions(slideRef, null, null);
+	}
+
+	public static List<Integer> getPixelDimensions(String slideRef,
+												   String sessionID) {
+		return getPixelDimensions(slideRef, null, sessionID);
+	}
+
 	/**
 	 * This method is used to determine the number of tiles needed to reconstitute a
 	 * slide at a given zoom level
-	 * 
+	 *
 	 * @param slideRef slide's path
-	 * @param varargs  Array of optional arguments
-	 *                 <p>
-	 *                 zoomLevel : First optional argument(Integer), default
-	 *                 value(null), zoom level
-	 *                 </p>
-	 *                 <p>
-	 *                 sessionID : Second optional argument(String), default
-	 *                 value(null), session's ID
-	 *                 </p>
+	 * @param zoomLevel  zoom level
+	 * @param sessionID session's ID
 	 * @return Three items list to determine the number of tiles needed to
 	 *         reconstitute a slide at a given zoom level
 	 */
-	public static List<Integer> getNumberOfTiles(String slideRef, Object... varargs) {
-		// setting the default values when arguments' values are omitted
-		Integer zoomLevel = null;
-		String sessionID = null;
-		if (varargs.length > 0) {
-			if (!(varargs[0] instanceof Integer) && varargs[0] != null) {
-				if (PMA.logger != null) {
-					PMA.logger.severe("getNumberOfTiles() : Invalid argument");
-				}
-				throw new IllegalArgumentException("...");
-			}
-			zoomLevel = (Integer) varargs[0];
-		}
-		if (varargs.length > 1) {
-			if (!(varargs[1] instanceof String) && varargs[1] != null) {
-				if (PMA.logger != null) {
-					PMA.logger.severe("getNumberOfTiles() : Invalid argument");
-				}
-				throw new IllegalArgumentException("...");
-			}
-			sessionID = (String) varargs[1];
-		}
+	public static List<Integer> getNumberOfTiles(String slideRef,
+												 Integer zoomLevel,
+												 String sessionID) {
+		zoomLevel = zoomLevel == null ? 0 : zoomLevel;
 		// Determine the number of tiles needed to reconstitute a slide at a given
 		// zoomlevel
 		List<Integer> pixels = getPixelDimensions(slideRef, zoomLevel, sessionID);
@@ -1858,22 +1791,25 @@ public class Core {
 		return result;
 	}
 
+	public static List<Integer> getNumberOfTiles(String slideRef,
+												 Integer zoomLevel) {
+		return getNumberOfTiles(slideRef, zoomLevel, null);
+	}
+
+	public static List<Integer> getNumberOfTiles(String slideRef) {
+		return getNumberOfTiles(slideRef, null, null);
+	}
+
 	/**
 	 * This method is used to Determine the physical dimensions of the sample
 	 * represented by the slide
-	 * 
+	 *
 	 * @param slideRef slide's path
-	 * @param varargs  Array of optional arguments
-	 *                 <p>
-	 *                 sessionID : First optional argument(String), default
-	 *                 value(null), session's ID
-	 *                 </p>
+	 * @param sessionID session's ID
 	 * @return Two items list to determine the physical dimensions of the sample
 	 *         represented by the slide
 	 */
-	public static List<Float> getPhysicalDimensions(String slideRef, String... varargs) {
-		// setting the default value when arguments' value is omitted
-		String sessionID = varargs.length > 0 ? varargs[0] : null;
+	public static List<Float> getPhysicalDimensions(String slideRef, String sessionID) {
 		// Determine the physical dimensions of the sample represented by the slide.
 		// This is independent of the zoom level: the physical properties don't change
 		// because the magnification changes
@@ -1885,118 +1821,107 @@ public class Core {
 		return result;
 	}
 
+	public static List<Float> getPhysicalDimensions(String slideRef) {
+		return getPhysicalDimensions(slideRef, null);
+	}
+
 	/**
 	 * This method is used to get the number of channels for a slide
-	 * 
+	 *
 	 * @param slideRef slide's path
-	 * @param varargs  Array of optional arguments
-	 *                 <p>
-	 *                 sessionID : First optional argument(String), default
-	 *                 value(null), session's ID
-	 *                 </p>
+	 * @param sessionID session's ID
 	 * @return Number of channels for a slide (1 when slide is brightfield)
 	 */
 	@SuppressWarnings("unchecked")
-	public static int getNumberOfChannels(String slideRef, String... varargs) {
-		// setting the default value when arguments' value is omitted
-		String sessionID = varargs.length > 0 ? varargs[0] : null;
-		// Number of fluorescent channels for a slide (when slide is brightfield, return
+	public static int getNumberOfChannels(String slideRef, String sessionID) {
+		// Number of fluorescent channels for a slide (when slide is bright field, return
 		// is always 1)
 		Map<String, Object> info = getSlideInfo(slideRef, sessionID);
 		return ((List<Object>) ((List<Map<String, Object>>) ((List<Map<String, Object>>) info.get("TimeFrames")).get(0)
 				.get("Layers")).get(0).get("Channels")).size();
 	}
 
+	public static int getNumberOfChannels(String slideRef) {
+		return getNumberOfChannels(slideRef, null);
+	}
+
 	/**
 	 * This method is used to get the number of (z-stacked) layers for a slide
-	 * 
+	 *
 	 * @param slideRef slide's path
-	 * @param varargs  Array of optional arguments
-	 *                 <p>
-	 *                 sessionID : First optional argument(String), default
-	 *                 value(null), session's ID
-	 *                 </p>
+	 * @param sessionID session's ID
 	 * @return Number of layers for a slide
 	 */
 	@SuppressWarnings("unchecked")
-	public static int getNumberOfLayers(String slideRef, String... varargs) {
-		// setting the default value when arguments' value is omitted
-		String sessionID = varargs.length > 0 ? varargs[0] : null;
+	public static int getNumberOfLayers(String slideRef, String sessionID) {
 		// Number of (z-stacked) layers for a slide
 		Map<String, Object> info = getSlideInfo(slideRef, sessionID);
 		return ((List<Object>) ((List<Map<String, Object>>) info.get("TimeFrames")).get(0).get("Layers")).size();
 	}
 
+	public static int getNumberOfLayers(String slideRef) {
+		return getNumberOfLayers(slideRef, null);
+	}
+
 	/**
 	 * This method is used to get the number of (z-stacked) layers for a slide
-	 * 
+	 *
 	 * @param slideRef slide's path
-	 * @param varargs  Array of optional arguments
-	 *                 <p>
-	 *                 sessionID : First optional argument(String), default
-	 *                 value(null), session's ID
-	 *                 </p>
+	 * @param sessionID session's ID
 	 * @return Number of Z-Stack layers for a slide
 	 */
-	public static int getNumberOfZStackLayers(String slideRef, String... varargs) {
-		// setting the default value when arguments' value is omitted
-		String sessionID = varargs.length > 0 ? varargs[0] : null;
+	public static int getNumberOfZStackLayers(String slideRef, String sessionID) {
 		return getNumberOfLayers(slideRef, sessionID);
+	}
+
+	public static int getNumberOfZStackLayers(String slideRef) {
+		return getNumberOfLayers(slideRef, null);
 	}
 
 	/**
 	 * This method is used to determine whether a slide is a fluorescent image or
 	 * not
-	 * 
+	 *
 	 * @param slideRef slide's path
-	 * @param varargs  Array of optional arguments
-	 *                 <p>
-	 *                 sessionID : First optional argument(String), default
-	 *                 value(null), session's ID
-	 *                 </p>
+	 * @param sessionID session's ID
 	 * @return True if slide is a fluorescent image, false otherwise
 	 */
-	public static Boolean isFluorescent(String slideRef, String... varargs) {
-		// setting the default value when arguments' value is omitted
-		String sessionID = varargs.length > 0 ? varargs[0] : null;
+	public static Boolean isFluorescent(String slideRef, String sessionID) {
 		// Determine whether a slide is a fluorescent image or not
 		return getNumberOfChannels(slideRef, sessionID) > 1;
+	}
+
+	public static Boolean isFluorescent(String slideRef) {
+		return isFluorescent(slideRef, null);
 	}
 
 	/**
 	 * This method is used to determine whether a slide contains multiple (stacked)
 	 * layers or not
-	 * 
+	 *
 	 * @param slideRef slide's path
-	 * @param varargs  Array of optional arguments
-	 *                 <p>
-	 *                 sessionID : First optional argument(String), default
-	 *                 value(null), session's ID
-	 *                 </p>
+	 * @param sessionID session's ID
 	 * @return True if slide contains multiple (stacked) layers, false otherwise
 	 */
-	public static Boolean isMultiLayer(String slideRef, String... varargs) {
+	public static Boolean isMultiLayer(String slideRef, String sessionID) {
 		// setting the default value when arguments' value is omitted
-		String sessionID = varargs.length > 0 ? varargs[0] : null;
 		// Determine whether a slide contains multiple (stacked) layers or not
 		return getNumberOfLayers(slideRef, sessionID) > 1;
+	}
+
+	public static Boolean isMultiLayer(String slideRef) {
+		return isMultiLayer(slideRef, null);
 	}
 
 	/**
 	 * This method is used to convert the slide last modified time stamp into a
 	 * human readable format
-	 * 
 	 * @param slideRef slide's path
-	 * @param varargs  Array of optional arguments
-	 *                 <p>
-	 *                 sessionID : First optional argument(String), default
-	 *                 value(null), session's ID
-	 *                 </p>
+	 * @param sessionID session's ID
 	 * @return Slide's last modification date
 	 */
-	public static String getLastModifiedDate(String slideRef, String... varargs) {
+	public static String getLastModifiedDate(String slideRef, String sessionID) {
 		// setting the default value when arguments' value is omitted
-		String sessionID = varargs.length > 0 ? varargs[0] : null;
 		String modificationDate = null;
 		modificationDate = String.valueOf(Core.getSlideInfo(slideRef, sessionID).get("LastModified"));
 		modificationDate = modificationDate.substring(6, modificationDate.length() - 2);
@@ -2006,76 +1931,43 @@ public class Core {
 		return modificationDate;
 	}
 
+	public static String getLastModifiedDate(String slideRef) {
+		return getLastModifiedDate(slideRef, null);
+	}
+
 	/**
 	 * This method is used to determine whether a slide is a z-stack or not
-	 * 
+	 *
 	 * @param slideRef slide's path
-	 * @param varargs  Array of optional arguments
-	 *                 <p>
-	 *                 sessionID : First optional argument(String), default
-	 *                 value(null), session's ID
-	 *                 </p>
+	 * @param sessionID session's ID
 	 * @return True if slide is a z-stack, false otherwise
 	 */
-	public static Boolean isZStack(String slideRef, String... varargs) {
-		// setting the default value when arguments' value is omitted
-		String sessionID = varargs.length > 0 ? varargs[0] : null;
+	public static Boolean isZStack(String slideRef, String sessionID ) {
 		// Determine whether a slide is a z-stack or not
 		return isMultiLayer(slideRef, sessionID);
+	}
+
+	public static Boolean isZStack(String slideRef) {
+		return isZStack(slideRef, null);
 	}
 
 	/**
 	 * This method is used to get the magnification represented at a certain zoom
 	 * level
-	 * 
+	 *
 	 * @param slideRef slide's path
-	 * @param varargs  Array of optional arguments
-	 *                 <p>
-	 *                 zoomLevel : First optional argument(Integer), default
-	 *                 value(false), zoom level
-	 *                 </p>
-	 *                 <p>
-	 *                 exact : Second optional argument(Boolean), default
-	 *                 value(null), defines if exact or not
-	 *                 </p>
-	 *                 <p>
-	 *                 sessionID : Third optional argument(String), default
-	 *                 value(null), session's ID
-	 *                 </p>
+	 * @param zoomLevel zoom level
+	 * @param exact defines if exact or not
+	 * @param sessionID session's ID
 	 * @return Magnification represented at a certain zoom level
 	 */
-	public static int getMagnification(String slideRef, Object... varargs) {
-		// setting the default values when arguments' values are omitted
-		Integer zoomLevel = null;
-		Boolean exact = false;
-		String sessionID = null;
-		if (varargs.length > 0) {
-			if (!(varargs[0] instanceof Integer) && varargs[0] != null) {
-				if (PMA.logger != null) {
-					PMA.logger.severe("getMagnification() : Invalid argument");
-				}
-				throw new IllegalArgumentException("...");
-			}
-			zoomLevel = (Integer) varargs[0];
-		}
-		if (varargs.length > 1) {
-			if (!(varargs[1] instanceof Boolean) && varargs[1] != null) {
-				if (PMA.logger != null) {
-					PMA.logger.severe("getMagnification() : Invalid argument");
-				}
-				throw new IllegalArgumentException("...");
-			}
-			exact = (Boolean) varargs[1];
-		}
-		if (varargs.length > 2) {
-			if (!(varargs[2] instanceof String) && varargs[2] != null) {
-				if (PMA.logger != null) {
-					PMA.logger.severe("getMagnification() : Invalid argument");
-				}
-				throw new IllegalArgumentException("...");
-			}
-			sessionID = (String) varargs[2];
-		}
+	public static int getMagnification(String slideRef,
+									   Integer zoomLevel,
+									   Boolean exact,
+									   String sessionID) {
+		zoomLevel = zoomLevel == null ? 0 : zoomLevel;
+		exact = exact == null ? false : exact;
+
 		// Get the magnification represented at a certain zoom level
 		float ppm = getPixelsPerMicrometer(slideRef, zoomLevel, sessionID).get(0);
 		if (ppm > 0) {
@@ -2090,22 +1982,31 @@ public class Core {
 		}
 	}
 
+	public static int getMagnification(String slideRef,
+									   Integer zoomLevel,
+									   Boolean exact) {
+		return getMagnification(slideRef, zoomLevel, exact, null);
+	}
+
+	public static int getMagnification(String slideRef,
+									   Integer zoomLevel) {
+		return getMagnification(slideRef, zoomLevel, false, null);
+	}
+
+	public static int getMagnification(String slideRef) {
+		return getMagnification(slideRef, null, false, null);
+	}
+
 	/**
 	 * This method is used to return the list of image types associated with a slide
 	 * (thumbnail, barcode...)
-	 * 
+	 *
 	 * @param slideRef slide's path
-	 * @param varargs  Array of optional arguments
-	 *                 <p>
-	 *                 sessionID : First optional argument(String), default
-	 *                 value(null), session's ID
-	 *                 </p>
+	 * @param sessionID session's ID
 	 * @return List of associated image types
 	 */
 	@SuppressWarnings("unchecked")
-	public static List<String> getAssociatedImageTypes(String slideRef, String... varargs) {
-		// setting the default value when arguments' value is omitted
-		String sessionID = varargs.length > 0 ? varargs[0] : null;
+	public static List<String> getAssociatedImageTypes(String slideRef, String sessionID) {
 		// Determine the maximum zoomlevel that still represents an optical
 		// magnification
 		Map<String, Object> info = getSlideInfo(slideRef, sessionID);
@@ -2123,21 +2024,19 @@ public class Core {
 		}
 	}
 
+	public static List<String> getAssociatedImageTypes(String slideRef) {
+		return getAssociatedImageTypes(slideRef, null);
+	}
+
 	/**
 	 * This method is used to get the URL that points to the barcode (alias for
 	 * "label") for a slide
-	 * 
+	 *
 	 * @param slideRef slide's path
-	 * @param varargs  Array of optional arguments
-	 *                 <p>
-	 *                 sessionID : First optional argument(String), default
-	 *                 value(null), session's ID
-	 *                 </p>
+	 * @param sessionID session's ID
 	 * @return URL that points to the barcode (alias for "label") for a slide
 	 */
-	public static String getBarcodeUrl(String slideRef, String... varargs) {
-		// setting the default value when arguments' value is omitted
-		String sessionID = varargs.length > 0 ? varargs[0] : null;
+	public static String getBarcodeUrl(String slideRef, String sessionID) {
 		// Get the URL that points to the barcode (alias for "label") for a slide
 		sessionID = sessionId(sessionID);
 		if (slideRef.startsWith("/")) {
@@ -2157,23 +2056,20 @@ public class Core {
 			}
 			return null;
 		}
+	}
 
+	public static String getBarcodeUrl(String slideRef) {
+		return getBarcodeUrl(slideRef, null);
 	}
 
 	/**
 	 * This method is used to get the barcode (alias for "label") image for a slide
-	 * 
+	 *
 	 * @param slideRef slide's path
-	 * @param varargs  Array of optional arguments
-	 *                 <p>
-	 *                 sessionID : First optional argument(String), default
-	 *                 value(null), session's ID
-	 *                 </p>
+	 * @param sessionID session's ID
 	 * @return Barcode (alias for "label") image for a slide
 	 */
-	public static Image getBarcodeImage(String slideRef, String... varargs) {
-		// setting the default value when arguments' value is omitted
-		String sessionID = varargs.length > 0 ? varargs[0] : null;
+	public static Image getBarcodeImage(String slideRef, String sessionID) {
 		// Get the barcode (alias for "label") image for a slide
 		sessionID = sessionId(sessionID);
 		if (slideRef.startsWith("/")) {
@@ -2197,20 +2093,18 @@ public class Core {
 		}
 	}
 
+	public static Image getBarcodeImage(String slideRef) {
+		return getBarcodeImage(slideRef, null);
+	}
+
 	/**
 	 * This method is used to get the text encoded by the barcode
-	 * 
+	 *
 	 * @param slideRef slide's path or UID
-	 * @param varargs  Array of optional arguments
-	 *                 <p>
-	 *                 sessionID : First optional argument(String), default
-	 *                 value(null), session's ID
-	 *                 </p>
+	 * @param sessionID session's ID
 	 * @return The barcode text
 	 */
-	public static String getBarcodeText(String slideRef, String... varargs) {
-		// setting the default value when arguments' value is omitted
-		String sessionID = varargs.length > 0 ? varargs[0] : null;
+	public static String getBarcodeText(String slideRef, String sessionID) {
 		// Get the text encoded by the barcode (if there IS a barcode on the slide to
 		// begin with)
 		sessionID = sessionId(sessionID);
@@ -2261,38 +2155,34 @@ public class Core {
 		return barcode;
 	}
 
+	public static String getBarcodeText(String slideRef) {
+		return getBarcodeText(slideRef, null);
+	}
+
 	/**
 	 * This method is used to get the URL that points to the label for a slide
-	 * 
+	 *
 	 * @param slideRef slide's path
-	 * @param varargs  Array of optional arguments
-	 *                 <p>
-	 *                 sessionID : First optional argument(String), default
-	 *                 value(null), session's ID
-	 *                 </p>
+	 * @param sessionID session's ID
 	 * @return Url that points to the label for a slide
 	 */
-	public static String getLabelUrl(String slideRef, String... varargs) {
-		// setting the default value when arguments' value is omitted
-		String sessionID = varargs.length > 0 ? varargs[0] : null;
+	public static String getLabelUrl(String slideRef, String sessionID) {
 		// Get the URL that points to the label for a slide
 		return getBarcodeUrl(slideRef, sessionID);
 	}
 
+	public static String getLabelUrl(String slideRef) {
+		return getLabelUrl(slideRef, null);
+	}
+
 	/**
 	 * This method is used to get the label image for a slide
-	 * 
+	 *
 	 * @param slideRef slide's path
-	 * @param varargs  Array of optional arguments
-	 *                 <p>
-	 *                 sessionID : First optional argument(String), default
-	 *                 value(null), session's ID
-	 *                 </p>
+	 * @param sessionID session's ID
 	 * @return Image label for a slide
 	 */
-	public static Image getLabelImage(String slideRef, String... varargs) {
-		// setting the default value when arguments' value is omitted
-		String sessionID = varargs.length > 0 ? varargs[0] : null;
+	public static Image getLabelImage(String slideRef, String sessionID) {
 		// Get the label image for a slide
 		sessionID = sessionId(sessionID);
 		if (slideRef.startsWith("/")) {
@@ -2316,59 +2206,27 @@ public class Core {
 		}
 	}
 
+	public static Image getLabelImage(String slideRef) {
+		return getLabelImage(slideRef, null);
+	}
+
 	/**
 	 * This method is used to get the URL that points to the thumbnail for a slide
-	 * 
+	 *
 	 * @param slideRef slide's path or UID
-	 * @param varargs  Array of optional arguments
-	 *                 <p>
-	 *                 sessionID : First optional argument(String), default
-	 *                 value(null), session's ID
-	 *                 </p>
-	 *                 <p>
-	 *                 height : Second optional argument(Integer), default value(0),
-	 *                 height of the requested thumbnail, if value set to 0 it will
+	 * @param sessionID session's ID
+	 * @param height height of the requested thumbnail, if value set to 0 it will
 	 *                 be ignored
-	 *                 </p>
-	 *                 <p>
-	 *                 width : Third optional argument(Integer), default value(0),
-	 *                 width of the requested thumbnail, if value set to 0 it will
+	 * @param  width width of the requested thumbnail, if value set to 0 it will
 	 *                 be ignored
-	 *                 </p>
 	 * @return URL that points to the thumbnail for a slide
 	 */
-	public static String getThumbnailUrl(String slideRef, Object... varargs) {
-		// setting the default values when arguments' values are omitted
-		String sessionID = null;
-		Integer height = 0;
-		Integer width = 0;
-		if (varargs.length > 0) {
-			if (!(varargs[0] instanceof String) && varargs[0] != null) {
-				if (PMA.logger != null) {
-					PMA.logger.severe("getThumbnailUrl() : Invalid argument");
-				}
-				throw new IllegalArgumentException("...");
-			}
-			sessionID = (String) varargs[0];
-		}
-		if (varargs.length > 1) {
-			if (!(varargs[1] instanceof Integer) && varargs[1] != null) {
-				if (PMA.logger != null) {
-					PMA.logger.severe("getThumbnailUrl() : Invalid argument");
-				}
-				throw new IllegalArgumentException("...");
-			}
-			height = (Integer) varargs[1];
-		}
-		if (varargs.length > 2) {
-			if (!(varargs[2] instanceof Integer) && varargs[2] != null) {
-				if (PMA.logger != null) {
-					PMA.logger.severe("getThumbnailUrl() : Invalid argument");
-				}
-				throw new IllegalArgumentException("...");
-			}
-			width = (Integer) varargs[2];
-		}
+	public static String getThumbnailUrl(String slideRef,
+										 String sessionID,
+										 Integer height,
+										 Integer width) {
+		height = height == null ? 0 : height;
+		width = width == null ? 0 : width;
 		// Get the URL that points to the thumbnail for a slide
 		sessionID = sessionId(sessionID);
 		if (slideRef.startsWith("/")) {
@@ -2391,59 +2249,38 @@ public class Core {
 		}
 	}
 
+	public static String getThumbnailUrl(String slideRef,
+										 String sessionID,
+										 Integer height) {
+		return getThumbnailUrl(slideRef, sessionID, height, null);
+	}
+
+	public static String getThumbnailUrl(String slideRef,
+										 String sessionID) {
+		return getThumbnailUrl(slideRef, sessionID, null, null);
+	}
+
+	public static String getThumbnailUrl(String slideRef) {
+		return getThumbnailUrl(slideRef, null, null, null);
+	}
+
 	/**
 	 * This method is used to get the thumbnail image for a slide
-	 * 
+	 *
 	 * @param slideRef slide's path
-	 * @param varargs  Array of optional arguments
-	 *                 <p>
-	 *                 sessionID : First optional argument(String), default
-	 *                 value(null), session's ID
-	 *                 </p>
-	 *                 <p>
-	 *                 height : Second optional argument(Integer), default value(0),
-	 *                 height of the requested thumbnail, if value set to 0 it will
+	 * @param sessionID session's ID
+	 * @param height height of the requested thumbnail, if value set to 0 it will
 	 *                 be ignored
-	 *                 </p>
-	 *                 <p>
-	 *                 width : Third optional argument(Integer), default value(0),
-	 *                 width of the requested thumbnail, if value set to 0 it will
+	 *@param width width of the requested thumbnail, if value set to 0 it will
 	 *                 be ignored
-	 *                 </p>
 	 * @return Image thumbnail for a slide
 	 */
-	public static Image getThumbnailImage(String slideRef, Object... varargs) {
-		// setting the default values when arguments' values are omitted
-		String sessionID = null;
-		Integer height = 0;
-		Integer width = 0;
-		if (varargs.length > 0) {
-			if (!(varargs[0] instanceof String) && varargs[0] != null) {
-				if (PMA.logger != null) {
-					PMA.logger.severe("getThumbnailImage() : Invalid argument");
-				}
-				throw new IllegalArgumentException("...");
-			}
-			sessionID = (String) varargs[0];
-		}
-		if (varargs.length > 1) {
-			if (!(varargs[1] instanceof Integer) && varargs[1] != null) {
-				if (PMA.logger != null) {
-					PMA.logger.severe("getThumbnailImage() : Invalid argument");
-				}
-				throw new IllegalArgumentException("...");
-			}
-			height = (Integer) varargs[1];
-		}
-		if (varargs.length > 2) {
-			if (!(varargs[2] instanceof Integer) && varargs[2] != null) {
-				if (PMA.logger != null) {
-					PMA.logger.severe("getThumbnailImage() : Invalid argument");
-				}
-				throw new IllegalArgumentException("...");
-			}
-			width = (Integer) varargs[2];
-		}
+	public static Image getThumbnailImage(String slideRef,
+										  String sessionID,
+										  Integer height,
+										  Integer width) {
+		height = height == null ? 0 : height;
+		width = width == null ? 0 : width;
 		// Get the thumbnail image for a slide
 		sessionID = sessionId(sessionID);
 		if (slideRef.startsWith("/")) {
@@ -2468,116 +2305,50 @@ public class Core {
 		}
 	}
 
+	public static Image getThumbnailImage(String slideRef,
+										  String sessionID,
+										  Integer height) {
+		return getThumbnailImage(slideRef, sessionID, height, null);
+	}
+
+	public static Image getThumbnailImage(String slideRef,
+										  String sessionID) {
+		return getThumbnailImage(slideRef, sessionID, null, null);
+	}
+
+	public static Image getThumbnailImage(String slideRef) {
+		return getThumbnailImage(slideRef, null, null, null);
+	}
+
 	/**
 	 * This method is used to create the url to retrieve a single tile at position
 	 * (x, y)
-	 * 
+	 *
 	 * @param slideRef slide's path or UID
-	 * @param varargs  Array of optional arguments
-	 *                 <p>
-	 *                 x : First optional argument(Integer), default value(0), x
-	 *                 position
-	 *                 </p>
-	 *                 <p>
-	 *                 y : Second optional argument(Integer), default value(0), y
-	 *                 position
-	 *                 </p>
-	 *                 <p>
-	 *                 zoomLevel : Third optional argument(Integer), default
-	 *                 value(null), zoom level
-	 *                 </p>
-	 *                 <p>
-	 *                 zStack : Fourth optional argument(Integer), default value(0),
-	 *                 Number of z stacks
-	 *                 </p>
-	 *                 <p>
-	 *                 sessionID : Fifth optional argument(String), default
-	 *                 value(null), session's ID
-	 *                 </p>
-	 *                 <p>
-	 *                 format : Sixth optional argument(String), default value(jpg),
-	 *                 image format
-	 *                 </p>
-	 *                 <p>
-	 *                 quality : Seventh optional argument(Integer), default
-	 *                 value(100), quality
-	 *                 </p>
+	 * @param x  x position
+	 * @param y  y position
+	 * @param  zoomLevel zoom level
+	 * @param  zStack Number of z stacks
+	 * @param sessionID session's ID
+	 * @param format value(jpg) image format
+	 * @param quality value(100), quality
 	 * @return Url to retrieve a single tile at position (x, y)
 	 * @throws Exception if unable to determine the PMA.core instance the session ID
 	 *                   belong to
 	 */
-	public static String getTileUrl(String slideRef, Object... varargs) throws Exception {
-		// setting the default values when arguments' values are omitted
-		Integer x = 0;
-		Integer y = 0;
-		Integer zoomLevel = null;
-		Integer zStack = 0;
-		String sessionID = null;
-		String format = "jpg";
-		Integer quality = 100;
-		if (varargs.length > 0) {
-			if (!(varargs[0] instanceof Integer) && varargs[0] != null) {
-				if (PMA.logger != null) {
-					PMA.logger.severe("getTile() : Invalid argument");
-				}
-				throw new IllegalArgumentException("...");
-			}
-			x = (Integer) varargs[0];
-		}
-		if (varargs.length > 1) {
-			if (!(varargs[1] instanceof Integer) && varargs[1] != null) {
-				if (PMA.logger != null) {
-					PMA.logger.severe("getTile() : Invalid argument");
-				}
-				throw new IllegalArgumentException("...");
-			}
-			y = (Integer) varargs[1];
-		}
-		if (varargs.length > 2) {
-			if (!(varargs[2] instanceof Integer) && varargs[2] != null) {
-				if (PMA.logger != null) {
-					PMA.logger.severe("getTile() : Invalid argument");
-				}
-				throw new IllegalArgumentException("...");
-			}
-			zoomLevel = (Integer) varargs[2];
-		}
-		if (varargs.length > 3) {
-			if (!(varargs[3] instanceof Integer) && varargs[3] != null) {
-				if (PMA.logger != null) {
-					PMA.logger.severe("getTile() : Invalid argument");
-				}
-				throw new IllegalArgumentException("...");
-			}
-			zStack = (Integer) varargs[3];
-		}
-		if (varargs.length > 4) {
-			if (!(varargs[4] instanceof String) && varargs[4] != null) {
-				if (PMA.logger != null) {
-					PMA.logger.severe("getTile() : Invalid argument");
-				}
-				throw new IllegalArgumentException("...");
-			}
-			sessionID = (String) varargs[4];
-		}
-		if (varargs.length > 5) {
-			if (!(varargs[5] instanceof String) && varargs[5] != null) {
-				if (PMA.logger != null) {
-					PMA.logger.severe("getTile() : Invalid argument");
-				}
-				throw new IllegalArgumentException("...");
-			}
-			format = (String) varargs[5];
-		}
-		if (varargs.length > 6) {
-			if (!(varargs[6] instanceof Integer) && varargs[6] != null) {
-				if (PMA.logger != null) {
-					PMA.logger.severe("getTile() : Invalid argument");
-				}
-				throw new IllegalArgumentException("...");
-			}
-			quality = (Integer) varargs[6];
-		}
+	public static String getTileUrl(String slideRef,
+									Integer x,
+									Integer y,
+									Integer zoomLevel,
+									Integer zStack,
+									String sessionID,
+									String format,
+									Integer quality) throws Exception {
+		x = x == null ? 0 : x;
+		y = y == null ? 0 : y;
+		zStack = zStack == null ? 0 : zStack;
+		format = format == null ? "jpg" : format;
+		quality = quality == null ? 100 : quality;
 		// Get a single tile at position (x, y)
 		// Format can be 'jpg' or 'png'
 		// Quality is an integer value and varies from 0
@@ -2616,115 +2387,90 @@ public class Core {
 		}
 	}
 
+	public static String getTileUrl(String slideRef,
+									Integer x,
+									Integer y,
+									Integer zoomLevel,
+									Integer zStack,
+									String sessionID,
+									String format) throws Exception {
+		return getTileUrl(slideRef, x, y, zoomLevel, zStack, sessionID,
+				format, 100);
+	}
+
+	public static String getTileUrl(String slideRef,
+									Integer x,
+									Integer y,
+									Integer zoomLevel,
+									Integer zStack,
+									String sessionID) throws Exception {
+		return getTileUrl(slideRef, x, y, zoomLevel, zStack, sessionID,
+				"jpg", 100);
+	}
+
+	public static String getTileUrl(String slideRef,
+									Integer x,
+									Integer y,
+									Integer zoomLevel,
+									Integer zStack) throws Exception {
+		return getTileUrl(slideRef, x, y, zoomLevel, zStack, null,
+				"jpg", 100);
+	}
+
+	public static String getTileUrl(String slideRef,
+									Integer x,
+									Integer y,
+									Integer zoomLevel) throws Exception {
+		return getTileUrl(slideRef, x, y, zoomLevel, 0, null,
+				"jpg", 100);
+	}
+
+	public static String getTileUrl(String slideRef,
+									Integer x,
+									Integer y) throws Exception {
+		return getTileUrl(slideRef, x, y, null, 0, null,
+				"jpg", 100);
+	}
+
+	public static String getTileUrl(String slideRef,
+									Integer x) throws Exception {
+		return getTileUrl(slideRef, x, 0, null, 0, null,
+				"jpg", 100);
+	}
+
+	public static String getTileUrl(String slideRef) throws Exception {
+		return getTileUrl(slideRef, 0, 0, null, 0, null,
+				"jpg", 100);
+	}
+
 	/**
 	 * This method is used to get a single tile at position (x, y)
-	 * 
+	 *
 	 * @param slideRef slide's path or UID
-	 * @param varargs  Array of optional arguments
-	 *                 <p>
-	 *                 x : First optional argument(Integer), default value(0), x
-	 *                 position
-	 *                 </p>
-	 *                 <p>
-	 *                 y : Second optional argument(Integer), default value(0), y
-	 *                 position
-	 *                 </p>
-	 *                 <p>
-	 *                 zoomLevel : Third optional argument(Integer), default
-	 *                 value(null), zoom level
-	 *                 </p>
-	 *                 <p>
-	 *                 zStack : Fourth optional argument(Integer), default value(0),
-	 *                 Number of z stacks
-	 *                 </p>
-	 *                 <p>
-	 *                 sessionID : Fifth optional argument(String), default
-	 *                 value(null), session's ID
-	 *                 </p>
-	 *                 <p>
-	 *                 format : Sixth optional argument(String), default value(jpg),
-	 *                 image format
-	 *                 </p>
-	 *                 <p>
-	 *                 quality : Seventh optional argument(Integer), default
-	 *                 value(100), quality
-	 *                 </p>
+	 * @param x   x position
+	 * @param y   y position
+	 * @param  zoomLevel zoom level
+	 * @param zStack Number of z stacks
+	 * @param sessionID  sessions ID
+	 * @param format  value(jpg), image format
+	 * @param quality  value(100)
 	 * @return Single tile at position (x, y)
 	 * @throws Exception if unable to determine the PMA.core instance the session ID
 	 *                   belong to
 	 */
-	public static Image getTile(String slideRef, Object... varargs) throws Exception {
-		// setting the default values when arguments' values are omitted
-		Integer x = 0;
-		Integer y = 0;
-		Integer zoomLevel = null;
-		Integer zStack = 0;
-		String sessionID = null;
-		String format = "jpg";
-		Integer quality = 100;
-		if (varargs.length > 0) {
-			if (!(varargs[0] instanceof Integer) && varargs[0] != null) {
-				if (PMA.logger != null) {
-					PMA.logger.severe("getTile() : Invalid argument");
-				}
-				throw new IllegalArgumentException("...");
-			}
-			x = (Integer) varargs[0];
-		}
-		if (varargs.length > 1) {
-			if (!(varargs[1] instanceof Integer) && varargs[1] != null) {
-				if (PMA.logger != null) {
-					PMA.logger.severe("getTile() : Invalid argument");
-				}
-				throw new IllegalArgumentException("...");
-			}
-			y = (Integer) varargs[1];
-		}
-		if (varargs.length > 2) {
-			if (!(varargs[2] instanceof Integer) && varargs[2] != null) {
-				if (PMA.logger != null) {
-					PMA.logger.severe("getTile() : Invalid argument");
-				}
-				throw new IllegalArgumentException("...");
-			}
-			zoomLevel = (Integer) varargs[2];
-		}
-		if (varargs.length > 3) {
-			if (!(varargs[3] instanceof Integer) && varargs[3] != null) {
-				if (PMA.logger != null) {
-					PMA.logger.severe("getTile() : Invalid argument");
-				}
-				throw new IllegalArgumentException("...");
-			}
-			zStack = (Integer) varargs[3];
-		}
-		if (varargs.length > 4) {
-			if (!(varargs[4] instanceof String) && varargs[4] != null) {
-				if (PMA.logger != null) {
-					PMA.logger.severe("getTile() : Invalid argument");
-				}
-				throw new IllegalArgumentException("...");
-			}
-			sessionID = (String) varargs[4];
-		}
-		if (varargs.length > 5) {
-			if (!(varargs[5] instanceof String) && varargs[5] != null) {
-				if (PMA.logger != null) {
-					PMA.logger.severe("getTile() : Invalid argument");
-				}
-				throw new IllegalArgumentException("...");
-			}
-			format = (String) varargs[5];
-		}
-		if (varargs.length > 6) {
-			if (!(varargs[6] instanceof Integer) && varargs[6] != null) {
-				if (PMA.logger != null) {
-					PMA.logger.severe("getTile() : Invalid argument");
-				}
-				throw new IllegalArgumentException("...");
-			}
-			quality = (Integer) varargs[6];
-		}
+	public static Image getTile(String slideRef,
+								Integer x,
+								Integer y,
+								Integer zoomLevel,
+								Integer zStack,
+								String sessionID,
+								String format,
+								Integer quality) throws Exception {
+		x = x == null ? 0 : x;
+		y = y == null ? 0 : y;
+		zStack = zStack == null ? 0 : zStack;
+		format = format == null ? "jpg" : format;
+		quality = quality == null ? 100 : quality;
 		// Get a single tile at position (x, y)
 		// Format can be 'jpg' or 'png'
 		// Quality is an integer value and varies from 0
@@ -2756,6 +2502,62 @@ public class Core {
 		}
 	}
 
+	public static Image getTile(String slideRef,
+								Integer x,
+								Integer y,
+								Integer zoomLevel,
+								Integer zStack,
+								String sessionID,
+								String format) throws Exception {
+		return getTile(slideRef, x, y, zoomLevel, zStack, sessionID, format,
+				100);
+	}
+
+	public static Image getTile(String slideRef,
+								Integer x,
+								Integer y,
+								Integer zoomLevel,
+								Integer zStack,
+								String sessionID) throws Exception {
+		return getTile(slideRef, x, y, zoomLevel, zStack, sessionID, "jpg",
+				100);
+	}
+
+	public static Image getTile(String slideRef,
+								Integer x,
+								Integer y,
+								Integer zoomLevel,
+								Integer zStack) throws Exception {
+		return getTile(slideRef, x, y, zoomLevel, zStack, null, "jpg",
+				100);
+	}
+
+	public static Image getTile(String slideRef,
+								Integer x,
+								Integer y,
+								Integer zoomLevel) throws Exception {
+		return getTile(slideRef, x, y, zoomLevel, null, null, "jpg",
+				100);
+	}
+
+	public static Image getTile(String slideRef,
+								Integer x,
+								Integer y) throws Exception {
+		return getTile(slideRef, x, y, null, null, null, "jpg",
+				100);
+	}
+
+	public static Image getTile(String slideRef,
+								Integer x) throws Exception {
+		return getTile(slideRef, x, null, null, null, null, "jpg",
+				100);
+	}
+
+	public static Image getTile(String slideRef) throws Exception {
+		return getTile(slideRef, null, null, null, null, null, "jpg",
+				100);
+	}
+
 	/**
 	 * Gets a region of the slide at the specified scale Format can be 'jpg' or
 	 * 'png' Quality is an integer value and varies from 0 (as much compression as
@@ -2763,9 +2565,7 @@ public class Core {
 	 * the region to get rotation is the rotation in degrees of the slide to get
 	 *
 	 * @param slideRef slide's path or UID
-	 * @param varargs  Array of optional arguments
-	 *                 <p>
-	 *                 x : First optional argument(Integer), default value(0),
+	 * @param x : First optional argument(Integer), default value(0),
 	 *                 starting x position
 	 *                 </p>
 	 *                 <p>
@@ -2852,25 +2652,58 @@ public class Core {
 	 * @return Gets a region of the slide at the specified scale
 	 */
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	public static Image getRegion(String slideRef, Object... varargs) {
-		String sessionID = null;
-		if (varargs.length > 5) {
-			if (!(varargs[5] instanceof String) && varargs[5] != null) {
-				if (PMA.logger != null) {
-					PMA.logger.severe("getRegion() : Invalid argument");
-				}
-				throw new IllegalArgumentException("Invalid sessionID");
-			}
-			sessionID = (String) varargs[5];
-		}
-
+	public static Image getRegion(String slideRef,
+								  Integer x,
+								  Integer y,
+								  Integer width,
+								  Integer height,
+								  Integer zStack,
+								  String sessionID,
+								  String format,
+								  Integer quality,
+								  Integer rotation,
+								  Integer contrast,
+								  Integer brightness,
+								  Integer postGamma,
+								  Integer dpi,
+								  Boolean flipVertical,
+								  Boolean flipHorizontal,
+								  String annotationsLayerType,
+								  Integer drawFilename,
+								  Boolean downloadInsteadOfDisplay,
+								  Boolean drawScaleBar,
+								  List<String> gammaList,
+								  List<String> channelClippingList) {
+		x = x == null ? 0 : x;
+		y = y == null ? 0 : y;
+		width = width == null ? 0 : width;
+		height = height == null ? 0 : height;
+		zStack = zStack == null ? 0 : zStack;
+		sessionID = null;
+		format = format == null ? "jpg" : format;
+		quality = quality == null ? 100 : quality;
+		rotation = rotation == null ? 0 : rotation;
+		contrast = contrast == null ? 0 : contrast;
+		brightness = brightness == null ? 0 : brightness;
+		postGamma = postGamma == null ? 0 : postGamma;
+		dpi = dpi == null ? 300 : dpi;
+		flipVertical = flipVertical == null ? false : flipVertical;
+		flipHorizontal = flipHorizontal == null ? false : flipHorizontal;
+		//rawtypes
+		annotationsLayerType = "";
+		drawFilename = 0;
+		downloadInsteadOfDisplay = downloadInsteadOfDisplay == null ? false :
+				downloadInsteadOfDisplay;
+		drawScaleBar = drawScaleBar == null ? false : drawScaleBar;
+		gammaList = new ArrayList<String>();
+		channelClippingList = new ArrayList<String>();
 		sessionID = sessionId(sessionID);
 		if (slideRef.startsWith("/")) {
 			slideRef = slideRef.substring(1);
 		}
-
 		try {
-			String url = getRegionUrl(slideRef, varargs);
+			String url = getRegionUrl(slideRef, x, y, width, height, zStack,
+					sessionID);
 			URL urlResource = new URL(url);
 			URLConnection con = urlResource.openConnection();
 			Image img = ImageIO.read(con.getInputStream());
@@ -2888,14 +2721,412 @@ public class Core {
 		}
 	}
 
+	public static Image getRegion(String slideRef,
+								  Integer x,
+								  Integer y,
+								  Integer width,
+								  Integer height,
+								  Integer zStack,
+								  String sessionID,
+								  String format,
+								  Integer quality,
+								  Integer rotation,
+								  Integer contrast,
+								  Integer brightness,
+								  Integer postGamma,
+								  Integer dpi,
+								  Boolean flipVertical,
+								  Boolean flipHorizontal,
+								  String annotationsLayerType,
+								  Integer drawFilename,
+								  Boolean downloadInsteadOfDisplay,
+								  Boolean drawScaleBar,
+								  List<String> gammaList
+								  ) {
+		return getRegion(slideRef, x, y, width, height, zStack, sessionID,
+				format,
+				quality, rotation, contrast, brightness, postGamma, dpi,
+				flipVertical, flipHorizontal, annotationsLayerType,
+				drawFilename, downloadInsteadOfDisplay, drawScaleBar,
+				gammaList, null);
+	}
+
+	public static Image getRegion(String slideRef,
+								  Integer x,
+								  Integer y,
+								  Integer width,
+								  Integer height,
+								  Integer zStack,
+								  String sessionID,
+								  String format,
+								  Integer quality,
+								  Integer rotation,
+								  Integer contrast,
+								  Integer brightness,
+								  Integer postGamma,
+								  Integer dpi,
+								  Boolean flipVertical,
+								  Boolean flipHorizontal,
+								  String annotationsLayerType,
+								  Integer drawFilename,
+								  Boolean downloadInsteadOfDisplay,
+								  Boolean drawScaleBar) {
+		return getRegion(slideRef, x, y, width, height, zStack, sessionID,
+				format,
+				quality, rotation, contrast, brightness, postGamma, dpi,
+				flipVertical, flipHorizontal, annotationsLayerType,
+				drawFilename, downloadInsteadOfDisplay, drawScaleBar,
+				null, null);
+	}
+
+	public static Image getRegion(String slideRef,
+								  Integer x,
+								  Integer y,
+								  Integer width,
+								  Integer height,
+								  Integer zStack,
+								  String sessionID,
+								  String format,
+								  Integer quality,
+								  Integer rotation,
+								  Integer contrast,
+								  Integer brightness,
+								  Integer postGamma,
+								  Integer dpi,
+								  Boolean flipVertical,
+								  Boolean flipHorizontal,
+								  String annotationsLayerType,
+								  Integer drawFilename,
+								  Boolean downloadInsteadOfDisplay) {
+		return getRegion(slideRef, x, y, width, height, zStack, sessionID,
+				format,
+				quality, rotation, contrast, brightness, postGamma, dpi,
+				flipVertical, flipHorizontal, annotationsLayerType,
+				drawFilename, downloadInsteadOfDisplay, false,
+				null, null);
+	}
+
+	public static Image getRegion(String slideRef,
+								  Integer x,
+								  Integer y,
+								  Integer width,
+								  Integer height,
+								  Integer zStack,
+								  String sessionID,
+								  String format,
+								  Integer quality,
+								  Integer rotation,
+								  Integer contrast,
+								  Integer brightness,
+								  Integer postGamma,
+								  Integer dpi,
+								  Boolean flipVertical,
+								  Boolean flipHorizontal,
+								  String annotationsLayerType,
+								  Integer drawFilename) {
+		return getRegion(slideRef, x, y, width, height, zStack, sessionID,
+				format,
+				quality, rotation, contrast, brightness, postGamma, dpi,
+				flipVertical, flipHorizontal, annotationsLayerType,
+				drawFilename, false, false,
+				null, null);
+	}
+
+	public static Image getRegion(String slideRef,
+								  Integer x,
+								  Integer y,
+								  Integer width,
+								  Integer height,
+								  Integer zStack,
+								  String sessionID,
+								  String format,
+								  Integer quality,
+								  Integer rotation,
+								  Integer contrast,
+								  Integer brightness,
+								  Integer postGamma,
+								  Integer dpi,
+								  Boolean flipVertical,
+								  Boolean flipHorizontal,
+								  String annotationsLayerType) {
+		return getRegion(slideRef, x, y, width, height, zStack, sessionID,
+				format,
+				quality, rotation, contrast, brightness, postGamma, dpi,
+				flipVertical, flipHorizontal, annotationsLayerType,
+				0, false, false,
+				null, null);
+	}
+
+	public static Image getRegion(String slideRef,
+								  Integer x,
+								  Integer y,
+								  Integer width,
+								  Integer height,
+								  Integer zStack,
+								  String sessionID,
+								  String format,
+								  Integer quality,
+								  Integer rotation,
+								  Integer contrast,
+								  Integer brightness,
+								  Integer postGamma,
+								  Integer dpi,
+								  Boolean flipVertical,
+								  Boolean flipHorizontal) {
+		return getRegion(slideRef, x, y, width, height, zStack, sessionID,
+				format,
+				quality, rotation, contrast, brightness, postGamma, dpi,
+				flipVertical, flipHorizontal, null,
+				0, false, false,
+				null, null);
+	}
+
+	public static Image getRegion(String slideRef,
+								  Integer x,
+								  Integer y,
+								  Integer width,
+								  Integer height,
+								  Integer zStack,
+								  String sessionID,
+								  String format,
+								  Integer quality,
+								  Integer rotation,
+								  Integer contrast,
+								  Integer brightness,
+								  Integer postGamma,
+								  Integer dpi,
+								  Boolean flipVertical) {
+		return getRegion(slideRef, x, y, width, height, zStack, sessionID,
+				format,
+				quality, rotation, contrast, brightness, postGamma, dpi,
+				flipVertical, false, null,
+				0, false, false,
+				null, null);
+	}
+
+	public static Image getRegion(String slideRef,
+								  Integer x,
+								  Integer y,
+								  Integer width,
+								  Integer height,
+								  Integer zStack,
+								  String sessionID,
+								  String format,
+								  Integer quality,
+								  Integer rotation,
+								  Integer contrast,
+								  Integer brightness,
+								  Integer postGamma,
+								  Integer dpi) {
+		return getRegion(slideRef, x, y, width, height, zStack, sessionID,
+				format,
+				quality, rotation, contrast, brightness, postGamma, dpi,
+				false, false, null,
+				0, false, false,
+				null, null);
+	}
+
+	public static Image getRegion(String slideRef,
+								  Integer x,
+								  Integer y,
+								  Integer width,
+								  Integer height,
+								  Integer zStack,
+								  String sessionID,
+								  String format,
+								  Integer quality,
+								  Integer rotation,
+								  Integer contrast,
+								  Integer brightness,
+								  Integer postGamma) {
+		return getRegion(slideRef, x, y, width, height, zStack, sessionID,
+				format,
+				quality, rotation, contrast, brightness, postGamma, 300,
+				false, false, null,
+				0, false, false,
+				null, null);
+	}
+
+	public static Image getRegion(String slideRef,
+								  Integer x,
+								  Integer y,
+								  Integer width,
+								  Integer height,
+								  Integer zStack,
+								  String sessionID,
+								  String format,
+								  Integer quality,
+								  Integer rotation,
+								  Integer contrast,
+								  Integer brightness) {
+		return getRegion(slideRef, x, y, width, height, zStack, sessionID,
+				format,
+				quality, rotation, contrast, brightness, null, 300,
+				false, false, null,
+				0, false, false,
+				null, null);
+	}
+
+	public static Image getRegion(String slideRef,
+								  Integer x,
+								  Integer y,
+								  Integer width,
+								  Integer height,
+								  Integer zStack,
+								  String sessionID,
+								  String format,
+								  Integer quality,
+								  Integer rotation,
+								  Integer contrast) {
+		return getRegion(slideRef, x, y, width, height, zStack, sessionID,
+				format,
+				quality, rotation, contrast, null, null, 300,
+				false, false, null,
+				0, false, false,
+				null, null);
+	}
+
+	public static Image getRegion(String slideRef,
+								  Integer x,
+								  Integer y,
+								  Integer width,
+								  Integer height,
+								  Integer zStack,
+								  String sessionID,
+								  String format,
+								  Integer quality,
+								  Integer rotation) {
+		return getRegion(slideRef, x, y, width, height, zStack, sessionID,
+				format,
+				quality, rotation, null, null, null, 300,
+				false, false, null,
+				0, false, false,
+				null, null);
+	}
+
+	public static Image getRegion(String slideRef,
+								  Integer x,
+								  Integer y,
+								  Integer width,
+								  Integer height,
+								  Integer zStack,
+								  String sessionID,
+								  String format,
+								  Integer quality) {
+		return getRegion(slideRef, x, y, width, height, zStack, sessionID,
+				format,
+				quality, 0, null, null, null, 300,
+				false, false, null,
+				0, false, false,
+				null, null);
+	}
+
+	public static Image getRegion(String slideRef,
+								  Integer x,
+								  Integer y,
+								  Integer width,
+								  Integer height,
+								  Integer zStack,
+								  String sessionID,
+								  String format) {
+		return getRegion(slideRef, x, y, width, height, zStack, sessionID,
+				format,
+				100, 0, null, null, null, 300,
+				false, false, null,
+				0, false, false,
+				null, null);
+	}
+
+	public static Image getRegion(String slideRef,
+								  Integer x,
+								  Integer y,
+								  Integer width,
+								  Integer height,
+								  Integer zStack,
+								  String sessionID) {
+		return getRegion(slideRef, x, y, width, height, zStack, sessionID,
+				"jpg",
+				100, 0, null, null, null, 300,
+				false, false, null,
+				0, false, false,
+				null, null);
+	}
+
+	public static Image getRegion(String slideRef,
+								  Integer x,
+								  Integer y,
+								  Integer width,
+								  Integer height,
+								  Integer zStack) {
+		return getRegion(slideRef, x, y, width, height, zStack, null,
+				"jpg",
+				100, 0, null, null, null, 300,
+				false, false, null,
+				0, false, false,
+				null, null);
+	}
+
+	public static Image getRegion(String slideRef,
+								  Integer x,
+								  Integer y,
+								  Integer width,
+								  Integer height) {
+		return getRegion(slideRef, x, y, width, height, 0, null,
+				"jpg",
+				100, 0, null, null, null, 300,
+				false, false, null,
+				0, false, false,
+				null, null);
+	}
+
+	public static Image getRegion(String slideRef,
+								  Integer x,
+								  Integer y,
+								  Integer width) {
+		return getRegion(slideRef, x, y, width, 0, 0, null,
+				"jpg",
+				100, 0, null, null, null, 300,
+				false, false, null,
+				0, false, false,
+				null, null);
+	}
+
+	public static Image getRegion(String slideRef,
+								  Integer x,
+								  Integer y) {
+		return getRegion(slideRef, x, y, 0, 0, 0, null,
+				"jpg",
+				100, 0, null, null, null, 300,
+				false, false, null,
+				0, false, false,
+				null, null);
+	}
+
+	public static Image getRegion(String slideRef,
+								  Integer x) {
+		return getRegion(slideRef, x, 0, 0, 0, 0, null,
+				"jpg",
+				100, 0, null, null, null, 300,
+				false, false, null,
+				0, false, false,
+				null, null);
+	}
+
+	public static Image getRegion(String slideRef) {
+		return getRegion(slideRef, 0, 0, 0, 0, 0, null,
+				"jpg",
+				100, 0, null, null, null, 300,
+				false, false, null,
+				0, false, false,
+				null, null);
+	}
+
 	/**
 	 * This method is used to create the url to retrieve a region of the slide at
 	 * the specified scale (x,y,width,height)
 	 *
 	 * @param slideRef slide's path or UID
-	 * @param varargs  Array of optional arguments
-	 *                 <p>
-	 *                 x : First optional argument(Integer), default value(0),
+	 * @param x : First optional argument(Integer), default value(0),
 	 *                 starting x position
 	 *                 </p>
 	 *                 <p>
@@ -2984,222 +3215,57 @@ public class Core {
 	 *                   belong to
 	 */
 	@SuppressWarnings({ "unchecked" })
-	public static String getRegionUrl(String slideRef, Object... varargs) throws Exception {
-		// setting the default values when arguments' values are omitted
-		Integer x = 0;
-		Integer y = 0;
-		Integer width = 0;
-		Integer height = 0;
+	public static String getRegionUrl(String slideRef,
+									  Integer x,
+									  Integer y,
+									  Integer width,
+									  Integer height,
+									  Integer zStack,
+									  String sessionID,
+									  String format,
+									  Integer quality,
+									  Integer rotation,
+									  Integer contrast,
+									  Integer brightness,
+									  Integer postGamma,
+									  Integer dpi,
+									  Boolean flipVertical,
+									  Boolean flipHorizontal,
+									  String annotationsLayerType,
+									  Integer drawFilename,
+									  Boolean downloadInsteadOfDisplay,
+									  Boolean drawScaleBar,
+									  List<String> gammaList,
+									  List<String> channelClippingList
+									  ) throws Exception {
+
+		x = x == null ? 0 : x;
+		y = y == null ? 0 : y;
+		width = width == null ? 0 : width;
+		height = height == null ? 0 : height;
 		Integer scale = 1;
-		Integer zStack = 0;
-		String sessionID = null;
-		String format = "jpg";
-		Integer quality = 100;
-		Integer rotation = 0;
-		Integer contrast = null;
-		Integer brightness = null;
-		Integer postGamma = null;
-		Integer dpi = 300;
-		Boolean flipVertical = false;
-		Boolean flipHorizontal = false;
-		String annotationsLayerType = null;
-		Integer drawFilename = 0;
-		Boolean downloadInsteadOfDisplay = false;
-		Boolean drawScaleBar = false;
-		String gamma = null;
-		String channelClipping = null;
-
-		if (varargs.length > 0) {
-			if (!(varargs[0] instanceof Integer) && varargs[0] != null) {
-				if (PMA.logger != null) {
-					PMA.logger.severe("getRegion(): Invalid argument, X is required");
-				}
-				throw new IllegalArgumentException("X is required");
-			}
-			x = (Integer) varargs[0];
-		}
-		if (varargs.length > 1) {
-			if (!(varargs[1] instanceof Integer) && varargs[1] != null) {
-				if (PMA.logger != null) {
-					PMA.logger.severe("getRegion():  Invalid argument, Y is required");
-				}
-				throw new IllegalArgumentException("Y is required");
-			}
-			y = (Integer) varargs[1];
-		}
-		if (varargs.length > 2) {
-			if (!(varargs[2] instanceof Integer) && varargs[2] != null) {
-				if (PMA.logger != null) {
-					PMA.logger.severe("getRegion(): Invalid argument, width is required");
-				}
-				throw new IllegalArgumentException("Width is required");
-			}
-			width = (Integer) varargs[2];
-		}
-		if (varargs.length > 3) {
-			if (!(varargs[3] instanceof Integer) && varargs[3] != null) {
-				if (PMA.logger != null) {
-					PMA.logger.severe("getRegion(): Invalid argument, height is required");
-				}
-				throw new IllegalArgumentException("Height is required");
-			}
-			height = (Integer) varargs[3];
-		}
-		if (varargs.length > 4) {
-			if (!(varargs[4] instanceof Integer) && varargs[4] != null) {
-				if (PMA.logger != null) {
-					PMA.logger.severe("getRegion(): Invalid argument, zStack is required");
-				}
-				throw new IllegalArgumentException("ZStack is required");
-			}
-			zStack = (Integer) varargs[4];
-		}
-		if (varargs.length > 5) {
-			if (!(varargs[5] instanceof String) && varargs[5] != null) {
-				if (PMA.logger != null) {
-					PMA.logger.severe("getRegion(): Invalid argument, invalid sessionId");
-				}
-				throw new IllegalArgumentException("Invalid session id");
-			}
-			sessionID = (String) varargs[5];
-		}
-		if (varargs.length > 6) {
-			if (!(varargs[6] instanceof String) && varargs[6] != null) {
-				if (PMA.logger != null) {
-					PMA.logger.severe("getRegion(): Invalid argument, invalid format parameter");
-				}
-				throw new IllegalArgumentException("Invalid format parameter");
-			}
-			format = (String) varargs[6];
-		}
-		if (varargs.length > 7) {
-			if (!(varargs[7] instanceof Integer) && varargs[7] != null) {
-				if (PMA.logger != null) {
-					PMA.logger.severe("getRegion(): Invalid argument, invalid quality parameter");
-				}
-				throw new IllegalArgumentException("Invalid quality parameter");
-			}
-			quality = (Integer) varargs[7];
-		}
-		if (varargs.length > 8) {
-			if (!(varargs[8] instanceof Integer) && varargs[8] != null) {
-				if (PMA.logger != null) {
-					PMA.logger.severe("getRegion(): Invalid argument, invalid rotation parameter");
-				}
-				throw new IllegalArgumentException("Invalid rotation parameter");
-			}
-			rotation = (Integer) varargs[8];
-		}
-		if (varargs.length > 9) {
-			if (!(varargs[9] instanceof Integer) && varargs[9] != null) {
-				if (PMA.logger != null) {
-					PMA.logger.severe("getRegion(): Invalid argument constrast");
-				}
-				throw new IllegalArgumentException("Invalid contrast parameter");
-			}
-			contrast = (Integer) varargs[9];
-		}
-		if (varargs.length > 10) {
-			if (!(varargs[10] instanceof Integer) && varargs[10] != null) {
-				if (PMA.logger != null) {
-					PMA.logger.severe("getRegion(): Invalid argument brightness");
-				}
-				throw new IllegalArgumentException("Invalid brightness parameter");
-			}
-			brightness = (Integer) varargs[10];
-		}
-		if (varargs.length > 11) {
-			if (!(varargs[11] instanceof Integer) && varargs[11] != null) {
-				if (PMA.logger != null) {
-					PMA.logger.severe("getRegion(): Invalid argument postGamma");
-				}
-				throw new IllegalArgumentException("Invalid post gamma parameter.");
-			}
-			postGamma = (Integer) varargs[11];
-		}
-		if (varargs.length > 12) {
-			if (!(varargs[12] instanceof Integer) && varargs[12] != null) {
-				if (PMA.logger != null) {
-					PMA.logger.severe("getRegion(): Invalid argument dpi");
-				}
-				throw new IllegalArgumentException("Invalid dpi parameter");
-			}
-			dpi = (Integer) varargs[12];
-		}
-		if (varargs.length > 13) {
-			if (!(varargs[13] instanceof Boolean) && varargs[13] != null) {
-				if (PMA.logger != null) {
-					PMA.logger.severe("getRegion(): Invalid argument flipVertical");
-				}
-				throw new IllegalArgumentException(" Invalid paramter flipVertical");
-			}
-			flipVertical = (Boolean) varargs[13];
-		}
-		if (varargs.length > 14) {
-			if (!(varargs[14] instanceof Boolean) && varargs[14] != null) {
-				if (PMA.logger != null) {
-					PMA.logger.severe("getRegion(): Invalid argument flipHorizontal");
-				}
-				throw new IllegalArgumentException("Invalid argument flipHorizontal");
-			}
-			flipHorizontal = (Boolean) varargs[14];
-		}
-		if (varargs.length > 15) {
-			if (!(varargs[15] instanceof String) && varargs[15] != null) {
-				if (PMA.logger != null) {
-					PMA.logger.severe("getRegion(): Invalid argument annotationsLayerType");
-				}
-				throw new IllegalArgumentException("Invalid argument annotationsLayerType");
-			}
-			annotationsLayerType = (String) varargs[15];
-		}
-		if (varargs.length > 16) {
-			if (!(varargs[16] instanceof Integer) && varargs[16] != null) {
-				if (PMA.logger != null) {
-					PMA.logger.severe("getRegion(): Invalid argument drawFilename");
-				}
-				throw new IllegalArgumentException("Invalid argument drawFilename");
-			}
-			drawFilename = (Integer) varargs[16];
-		}
-		if (varargs.length > 17) {
-			if (!(varargs[17] instanceof Boolean) && varargs[17] != null) {
-				if (PMA.logger != null) {
-					PMA.logger.severe("getRegion(): Invalid argument downloadInsteadOfDisplay");
-				}
-				throw new IllegalArgumentException("Invalid argument downloadInsteadOfDisplay");
-			}
-			downloadInsteadOfDisplay = (Boolean) varargs[17];
-		}
-		if (varargs.length > 18) {
-			if (!(varargs[18] instanceof Boolean) && varargs[18] != null) {
-				if (PMA.logger != null) {
-					PMA.logger.severe("getRegion(): Invalid argument drawScaleBar");
-				}
-				throw new IllegalArgumentException("Invalid argument drawScaleBar");
-			}
-			drawScaleBar = (Boolean) varargs[18];
-		}
-		if (varargs.length > 19) {
-			if (!(varargs[19] instanceof ArrayList) && varargs[19] != null) {
-				if (PMA.logger != null) {
-					PMA.logger.severe("getRegion(): Invalid argument gamma");
-				}
-				throw new IllegalArgumentException("Invalid argument gamma");
-			}
-
-			gamma = String.join(",", (List<String>) varargs[19]);
-		}
-		if (varargs.length > 20) {
-			if (!(varargs[20] instanceof ArrayList) && varargs[20] != null) {
-				if (PMA.logger != null) {
-					PMA.logger.severe("getRegion(): Invalid argument channelClipping");
-				}
-				throw new IllegalArgumentException("Invalid argument channelClipping");
-			}
-			channelClipping = String.join(",", (List<String>) varargs[19]);
-		}
-
+		zStack = zStack == null ? 0 : zStack;
+		format = format == null ? "jpg" : format;
+		quality = quality == null ? 100: quality;
+		rotation = rotation == null ? 0 : rotation;
+		contrast = contrast == null ? 0 : contrast;
+		brightness = brightness == null ? 0 : brightness;
+		postGamma = postGamma == null ? 0 : postGamma;
+		dpi = dpi == null ? 300 : dpi;
+		flipVertical = flipVertical == null ? false : flipVertical;
+		flipHorizontal = flipHorizontal == null ? false : flipHorizontal;
+		annotationsLayerType = null;
+		drawFilename = drawFilename == null ? 0 : drawFilename;
+		downloadInsteadOfDisplay = downloadInsteadOfDisplay == null ? false :
+				downloadInsteadOfDisplay;
+		drawScaleBar = drawScaleBar == null ? false : drawScaleBar;
+		String gamma = (gammaList == null) || (gammaList.isEmpty()) ? null :
+				String.join(",", gammaList);
+		String channelClipping =
+				(channelClippingList == null) || (channelClippingList.isEmpty()) ? null :
+						String.join(
+				",",
+				channelClippingList);
 		sessionID = sessionId(sessionID);
 		if (slideRef.startsWith("/")) {
 			slideRef = slideRef.substring(1);
@@ -3238,14 +3304,413 @@ public class Core {
 		}
 	}
 
+	public static String getRegionUrl(String slideRef,
+								  Integer x,
+								  Integer y,
+								  Integer width,
+								  Integer height,
+								  Integer zStack,
+								  String sessionID,
+								  String format,
+								  Integer quality,
+								  Integer rotation,
+								  Integer contrast,
+								  Integer brightness,
+								  Integer postGamma,
+								  Integer dpi,
+								  Boolean flipVertical,
+								  Boolean flipHorizontal,
+								  String annotationsLayerType,
+								  Integer drawFilename,
+								  Boolean downloadInsteadOfDisplay,
+								  Boolean drawScaleBar,
+								  List<String> gammaList
+	) throws Exception {
+		return getRegionUrl(slideRef, x, y, width, height, zStack, sessionID,
+				format,
+				quality, rotation, contrast, brightness, postGamma, dpi,
+				flipVertical, flipHorizontal, annotationsLayerType,
+				drawFilename, downloadInsteadOfDisplay, drawScaleBar,
+				gammaList, null);
+	}
+
+	public static String getRegionUrl(String slideRef,
+								  Integer x,
+								  Integer y,
+								  Integer width,
+								  Integer height,
+								  Integer zStack,
+								  String sessionID,
+								  String format,
+								  Integer quality,
+								  Integer rotation,
+								  Integer contrast,
+								  Integer brightness,
+								  Integer postGamma,
+								  Integer dpi,
+								  Boolean flipVertical,
+								  Boolean flipHorizontal,
+								  String annotationsLayerType,
+								  Integer drawFilename,
+								  Boolean downloadInsteadOfDisplay,
+								  Boolean drawScaleBar) throws Exception {
+		return getRegionUrl(slideRef, x, y, width, height, zStack, sessionID,
+				format,
+				quality, rotation, contrast, brightness, postGamma, dpi,
+				flipVertical, flipHorizontal, annotationsLayerType,
+				drawFilename, downloadInsteadOfDisplay, drawScaleBar,
+				null, null);
+	}
+
+	public static String getRegionUrl(String slideRef,
+								  Integer x,
+								  Integer y,
+								  Integer width,
+								  Integer height,
+								  Integer zStack,
+								  String sessionID,
+								  String format,
+								  Integer quality,
+								  Integer rotation,
+								  Integer contrast,
+								  Integer brightness,
+								  Integer postGamma,
+								  Integer dpi,
+								  Boolean flipVertical,
+								  Boolean flipHorizontal,
+								  String annotationsLayerType,
+								  Integer drawFilename,
+								  Boolean downloadInsteadOfDisplay) throws Exception {
+		return getRegionUrl(slideRef, x, y, width, height, zStack, sessionID,
+				format,
+				quality, rotation, contrast, brightness, postGamma, dpi,
+				flipVertical, flipHorizontal, annotationsLayerType,
+				drawFilename, downloadInsteadOfDisplay, false,
+				null, null);
+	}
+
+	public static String getRegionUrl(String slideRef,
+								  Integer x,
+								  Integer y,
+								  Integer width,
+								  Integer height,
+								  Integer zStack,
+								  String sessionID,
+								  String format,
+								  Integer quality,
+								  Integer rotation,
+								  Integer contrast,
+								  Integer brightness,
+								  Integer postGamma,
+								  Integer dpi,
+								  Boolean flipVertical,
+								  Boolean flipHorizontal,
+								  String annotationsLayerType,
+								  Integer drawFilename) throws Exception {
+		return getRegionUrl(slideRef, x, y, width, height, zStack, sessionID,
+				format,
+				quality, rotation, contrast, brightness, postGamma, dpi,
+				flipVertical, flipHorizontal, annotationsLayerType,
+				drawFilename, false, false,
+				null, null);
+	}
+
+	public static String getRegionUrl(String slideRef,
+								  Integer x,
+								  Integer y,
+								  Integer width,
+								  Integer height,
+								  Integer zStack,
+								  String sessionID,
+								  String format,
+								  Integer quality,
+								  Integer rotation,
+								  Integer contrast,
+								  Integer brightness,
+								  Integer postGamma,
+								  Integer dpi,
+								  Boolean flipVertical,
+								  Boolean flipHorizontal,
+								  String annotationsLayerType) throws Exception {
+		return getRegionUrl(slideRef, x, y, width, height, zStack, sessionID,
+				format,
+				quality, rotation, contrast, brightness, postGamma, dpi,
+				flipVertical, flipHorizontal, annotationsLayerType,
+				0, false, false,
+				null, null);
+	}
+
+	public static String getRegionUrl(String slideRef,
+								  Integer x,
+								  Integer y,
+								  Integer width,
+								  Integer height,
+								  Integer zStack,
+								  String sessionID,
+								  String format,
+								  Integer quality,
+								  Integer rotation,
+								  Integer contrast,
+								  Integer brightness,
+								  Integer postGamma,
+								  Integer dpi,
+								  Boolean flipVertical,
+								  Boolean flipHorizontal) throws Exception {
+		return getRegionUrl(slideRef, x, y, width, height, zStack, sessionID,
+				format,
+				quality, rotation, contrast, brightness, postGamma, dpi,
+				flipVertical, flipHorizontal, null,
+				0, false, false,
+				null, null);
+	}
+
+	public static String getRegionUrl(String slideRef,
+								  Integer x,
+								  Integer y,
+								  Integer width,
+								  Integer height,
+								  Integer zStack,
+								  String sessionID,
+								  String format,
+								  Integer quality,
+								  Integer rotation,
+								  Integer contrast,
+								  Integer brightness,
+								  Integer postGamma,
+								  Integer dpi,
+								  Boolean flipVertical) throws Exception {
+		return getRegionUrl(slideRef, x, y, width, height, zStack, sessionID,
+				format,
+				quality, rotation, contrast, brightness, postGamma, dpi,
+				flipVertical, false, null,
+				0, false, false,
+				null, null);
+	}
+
+	public static String getRegionUrl(String slideRef,
+								  Integer x,
+								  Integer y,
+								  Integer width,
+								  Integer height,
+								  Integer zStack,
+								  String sessionID,
+								  String format,
+								  Integer quality,
+								  Integer rotation,
+								  Integer contrast,
+								  Integer brightness,
+								  Integer postGamma,
+								  Integer dpi) throws Exception {
+		return getRegionUrl(slideRef, x, y, width, height, zStack, sessionID,
+				format,
+				quality, rotation, contrast, brightness, postGamma, dpi,
+				false, false, null,
+				0, false, false,
+				null, null);
+	}
+
+	public static String getRegionUrl(String slideRef,
+								  Integer x,
+								  Integer y,
+								  Integer width,
+								  Integer height,
+								  Integer zStack,
+								  String sessionID,
+								  String format,
+								  Integer quality,
+								  Integer rotation,
+								  Integer contrast,
+								  Integer brightness,
+								  Integer postGamma) throws Exception {
+		return getRegionUrl(slideRef, x, y, width, height, zStack, sessionID,
+				format,
+				quality, rotation, contrast, brightness, postGamma, 300,
+				false, false, null,
+				0, false, false,
+				null, null);
+	}
+
+	public static String getRegionUrl(String slideRef,
+								  Integer x,
+								  Integer y,
+								  Integer width,
+								  Integer height,
+								  Integer zStack,
+								  String sessionID,
+								  String format,
+								  Integer quality,
+								  Integer rotation,
+								  Integer contrast,
+								  Integer brightness) throws Exception {
+		return getRegionUrl(slideRef, x, y, width, height, zStack, sessionID,
+				format,
+				quality, rotation, contrast, brightness, null, 300,
+				false, false, null,
+				0, false, false,
+				null, null);
+	}
+
+	public static String getRegionUrl(String slideRef,
+								  Integer x,
+								  Integer y,
+								  Integer width,
+								  Integer height,
+								  Integer zStack,
+								  String sessionID,
+								  String format,
+								  Integer quality,
+								  Integer rotation,
+								  Integer contrast) throws Exception {
+		return getRegionUrl(slideRef, x, y, width, height, zStack, sessionID,
+				format,
+				quality, rotation, contrast, null, null, 300,
+				false, false, null,
+				0, false, false,
+				null, null);
+	}
+
+	public static String getRegionUrl(String slideRef,
+								  Integer x,
+								  Integer y,
+								  Integer width,
+								  Integer height,
+								  Integer zStack,
+								  String sessionID,
+								  String format,
+								  Integer quality,
+								  Integer rotation) throws Exception {
+		return getRegionUrl(slideRef, x, y, width, height, zStack, sessionID,
+				format,
+				quality, rotation, null, null, null, 300,
+				false, false, null,
+				0, false, false,
+				null, null);
+	}
+
+	public static String getRegionUrl(String slideRef,
+								  Integer x,
+								  Integer y,
+								  Integer width,
+								  Integer height,
+								  Integer zStack,
+								  String sessionID,
+								  String format,
+								  Integer quality) throws Exception {
+		return getRegionUrl(slideRef, x, y, width, height, zStack, sessionID,
+				format,
+				quality, 0, null, null, null, 300,
+				false, false, null,
+				0, false, false,
+				null, null);
+	}
+
+	public static String getRegionUrl(String slideRef,
+								  Integer x,
+								  Integer y,
+								  Integer width,
+								  Integer height,
+								  Integer zStack,
+								  String sessionID,
+								  String format) throws Exception {
+		return getRegionUrl(slideRef, x, y, width, height, zStack, sessionID,
+				format,
+				100, 0, null, null, null, 300,
+				false, false, null,
+				0, false, false,
+				null, null);
+	}
+
+	public static String getRegionUrl(String slideRef,
+								  Integer x,
+								  Integer y,
+								  Integer width,
+								  Integer height,
+								  Integer zStack,
+								  String sessionID) throws Exception {
+		return getRegionUrl(slideRef, x, y, width, height, zStack, sessionID,
+				"jpg",
+				100, 0, null, null, null, 300,
+				false, false, null,
+				0, false, false,
+				null, null);
+	}
+
+	public static String getRegionUrl(String slideRef,
+								  Integer x,
+								  Integer y,
+								  Integer width,
+								  Integer height,
+								  Integer zStack) throws Exception {
+		return getRegionUrl(slideRef, x, y, width, height, zStack, null,
+				"jpg",
+				100, 0, null, null, null, 300,
+				false, false, null,
+				0, false, false,
+				null, null);
+	}
+
+	public static String getRegionUrl(String slideRef,
+								  Integer x,
+								  Integer y,
+								  Integer width,
+								  Integer height) throws Exception {
+		return getRegionUrl(slideRef, x, y, width, height, 0, null,
+				"jpg",
+				100, 0, null, null, null, 300,
+				false, false, null,
+				0, false, false,
+				null, null);
+	}
+
+	public static String getRegionUrl(String slideRef,
+								  Integer x,
+								  Integer y,
+								  Integer width) throws Exception {
+		return getRegionUrl(slideRef, x, y, width, 0, 0, null,
+				"jpg",
+				100, 0, null, null, null, 300,
+				false, false, null,
+				0, false, false,
+				null, null);
+	}
+
+	public static String getRegionUrl(String slideRef,
+								  Integer x,
+								  Integer y) throws Exception {
+		return getRegionUrl(slideRef, x, y, 0, 0, 0, null,
+				"jpg",
+				100, 0, null, null, null, 300,
+				false, false, null,
+				0, false, false,
+				null, null);
+	}
+
+	public static String getRegionUrl(String slideRef,
+								  Integer x) throws Exception {
+		return getRegionUrl(slideRef, x, 0, 0, 0, 0, null,
+				"jpg",
+				100, 0, null, null, null, 300,
+				false, false, null,
+				0, false, false,
+				null, null);
+	}
+
+	public static String getRegionUrl(String slideRef) throws Exception {
+		return getRegionUrl(slideRef, 0, 0, 0, 0, 0, null,
+				"jpg",
+				100, 0, null, null, null, 300,
+				false, false, null,
+				0, false, false,
+				null, null);
+	}
+
+
 	/**
 	 * This method is used to get all tiles with a (fromX, fromY, toX, toY)
 	 * rectangle
-	 * 
+	 *
 	 * @param slideRef slide's path or UID
-	 * @param varargs  Array of optional arguments
-	 *                 <p>
-	 *                 fromX : First optional argument(Integer), default value(0),
+	 * @param  fromX  First optional argument(Integer), default value(0),
 	 *                 starting x position
 	 *                 </p>
 	 *                 <p>
@@ -3283,105 +3748,30 @@ public class Core {
 	 * @return All tiles with a (fromX, fromY, toX, toY) rectangle
 	 */
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	public static Stream getTiles(String slideRef, Object... varargs) {
-		// setting the default values when arguments' values are omitted
-		Integer fromX = 0;
-		Integer fromY = 0;
-		Integer toX = null;
-		Integer toY = null;
-		Integer zoomLevel = null;
-		Integer zStack = 0;
-		String sessionID = null;
-		String format = "jpg";
-		Integer quality = 100;
-		if (varargs.length > 0) {
-			if (!(varargs[0] instanceof Integer) && varargs[0] != null) {
-				if (PMA.logger != null) {
-					PMA.logger.severe("getTiles() : Invalid argument");
-				}
-				throw new IllegalArgumentException("...");
-			}
-			fromX = (Integer) varargs[0];
-		}
-		if (varargs.length > 1) {
-			if (!(varargs[1] instanceof Integer) && varargs[1] != null) {
-				if (PMA.logger != null) {
-					PMA.logger.severe("getTiles() : Invalid argument");
-				}
-				throw new IllegalArgumentException("...");
-			}
-			fromY = (Integer) varargs[1];
-		}
-		if (varargs.length > 2) {
-			if (!(varargs[2] instanceof Integer) && varargs[2] != null) {
-				if (PMA.logger != null) {
-					PMA.logger.severe("getTiles() : Invalid argument");
-				}
-				throw new IllegalArgumentException("...");
-			}
-			toX = (Integer) varargs[2];
-		}
-		if (varargs.length > 3) {
-			if (!(varargs[3] instanceof Integer) && varargs[3] != null) {
-				if (PMA.logger != null) {
-					PMA.logger.severe("getTiles() : Invalid argument");
-				}
-				throw new IllegalArgumentException("...");
-			}
-			toY = (Integer) varargs[3];
-		}
-		if (varargs.length > 4) {
-			if (!(varargs[4] instanceof Integer) && varargs[4] != null) {
-				if (PMA.logger != null) {
-					PMA.logger.severe("getTiles() : Invalid argument");
-				}
-				throw new IllegalArgumentException("...");
-			}
-			zoomLevel = (Integer) varargs[4];
-		}
-		if (varargs.length > 5) {
-			if (!(varargs[5] instanceof Integer) && varargs[5] != null) {
-				if (PMA.logger != null) {
-					PMA.logger.severe("getTiles() : Invalid argument");
-				}
-				throw new IllegalArgumentException("...");
-			}
-			zStack = (Integer) varargs[5];
-		}
-		if (varargs.length > 6) {
-			if (!(varargs[6] instanceof String) && varargs[6] != null) {
-				if (PMA.logger != null) {
-					PMA.logger.severe("getTiles() : Invalid argument");
-				}
-				throw new IllegalArgumentException("...");
-			}
-			sessionID = (String) varargs[6];
-		}
-		if (varargs.length > 7) {
-			if (!(varargs[7] instanceof String) && varargs[7] != null) {
-				if (PMA.logger != null) {
-					PMA.logger.severe("getTiles() : Invalid argument");
-				}
-				throw new IllegalArgumentException("...");
-			}
-			format = (String) varargs[7];
-		}
-		if (varargs.length > 8) {
-			if (!(varargs[8] instanceof Integer) && varargs[8] != null) {
-				if (PMA.logger != null) {
-					PMA.logger.severe("getTiles() : Invalid argument");
-				}
-				throw new IllegalArgumentException("...");
-			}
-			quality = (Integer) varargs[8];
-		}
+	public static Stream getTiles(String slideRef,
+								  Integer fromX,
+								  Integer fromY,
+								  Integer toX,
+								  Integer toY,
+								  Integer zoomLevel,
+								  Integer zStack,
+								  String sessionID,
+								  String format,
+								  Integer quality) {
+		fromX = fromX == null ? 0 : fromX;
+		fromY = fromY == null ? 0 : fromY;
+		zoomLevel = zoomLevel == null ? 0 : zoomLevel;
+		zStack = zStack == null ? 0 : zStack;
+		sessionID = sessionId(sessionID);
+		format = format == null ? "jpg" : format;
+		quality = quality == null ? 100 : quality;
+
 		// Get all tiles with a (fromX, fromY, toX, toY) rectangle. Navigate left to
 		// right, top to bottom
 		// Format can be 'jpg' or 'png'
 		// Quality is an integer value and varies from 0
 		// (as much compression as possible; not recommended) to 100 (100%, no
 		// compression)
-		sessionID = sessionId(sessionID);
 		if (slideRef.startsWith("/")) {
 			slideRef = slideRef.substring(1);
 		}
@@ -3436,21 +3826,96 @@ public class Core {
 		}).limit((varToX - varFromX + 1) * (varToY - varFromY + 1));
 	}
 
+	public static Stream getTiles(String slideRef,
+								  Integer fromX,
+								  Integer fromY,
+								  Integer toX,
+								  Integer toY,
+								  Integer zoomLevel,
+								  Integer zStack,
+								  String sessionID,
+								  String format) {
+		return getTiles(slideRef, fromX, fromY, toX,
+				toY, zoomLevel, zStack, sessionID, format, 100);
+	}
+
+	public static Stream getTiles(String slideRef,
+								  Integer fromX,
+								  Integer fromY,
+								  Integer toX,
+								  Integer toY,
+								  Integer zoomLevel,
+								  Integer zStack,
+								  String sessionID) {
+		return getTiles(slideRef, fromX, fromY, toX,
+				toY, zoomLevel, zStack, sessionID, "jpg", 100);
+	}
+
+	public static Stream getTiles(String slideRef,
+								  Integer fromX,
+								  Integer fromY,
+								  Integer toX,
+								  Integer toY,
+								  Integer zoomLevel,
+								  Integer zStack) {
+		return getTiles(slideRef, fromX, fromY, toX,
+				toY, zoomLevel, zStack, null, "jpg", 100);
+	}
+
+	public static Stream getTiles(String slideRef,
+								  Integer fromX,
+								  Integer fromY,
+								  Integer toX,
+								  Integer toY,
+								  Integer zoomLevel) {
+		return getTiles(slideRef, fromX, fromY, toX,
+				toY, zoomLevel, null, null, "jpg", 100);
+	}
+
+	public static Stream getTiles(String slideRef,
+								  Integer fromX,
+								  Integer fromY,
+								  Integer toX,
+								  Integer toY) {
+		return getTiles(slideRef, fromX, fromY, toX,
+				toY, null, null, null, "jpg", 100);
+	}
+
+	public static Stream getTiles(String slideRef,
+								  Integer fromX,
+								  Integer fromY,
+								  Integer toX) {
+		return getTiles(slideRef, fromX, fromY, toX,
+				null, null, null, null, "jpg", 100);
+	}
+
+	public static Stream getTiles(String slideRef,
+								  Integer fromX,
+								  Integer fromY) {
+		return getTiles(slideRef, fromX, fromY, null,
+				null, null, null, null, "jpg", 100);
+	}
+
+	public static Stream getTiles(String slideRef,
+								  Integer fromX) {
+		return getTiles(slideRef, fromX, 0, null,
+				null, null, null, null, "jpg", 100);
+	}
+
+	public static Stream getTiles(String slideRef) {
+		return getTiles(slideRef, 0, 0, null,
+				null, null, null, null, "jpg", 100);
+	}
+
 	/**
 	 * This method is used to find out what forms where submitted for a specific
 	 * slide
-	 * 
+	 *
 	 * @param slideRef slide's path or UID
-	 * @param varargs  Array of optional arguments
-	 *                 <p>
-	 *                 sessionID : First optional argument(String), default
-	 *                 value(null), session's ID
-	 *                 </p>
+	 * @param sessionID session's ID
 	 * @return Map of forms submitted for a defined slide
 	 */
-	public static Map<String, String> getSubmittedForms(String slideRef, String... varargs) {
-		// setting the default value when arguments' value is omitted
-		String sessionID = varargs.length > 0 ? varargs[0] : null;
+	public static Map<String, String> getSubmittedForms(String slideRef, String sessionID) {
 		// Find out what forms where submitted for a specific slide
 		sessionID = sessionId(sessionID);
 		if (slideRef.startsWith("/")) {
@@ -3515,20 +3980,18 @@ public class Core {
 		return forms;
 	}
 
+	public static Map<String, String> getSubmittedForms(String slideRef) {
+		return getSubmittedForms(slideRef, null);
+	}
+
 	/**
 	 * This method is used to get submitted forms data in json Array format
-	 * 
+	 *
 	 * @param slideRef slide's path or UID
-	 * @param varargs  Array of optional arguments
-	 *                 <p>
-	 *                 sessionID : First optional argument(String), default
-	 *                 value(null), session's ID
-	 *                 </p>
+	 * @param sessionID session's ID
 	 * @return Submitted forms data in json Array format
 	 */
-	public static JSONArray getSubmittedFormData(String slideRef, String... varargs) {
-		// setting the default values when arguments' values are omitted
-		String sessionID = varargs.length > 0 ? varargs[0] : null;
+	public static JSONArray getSubmittedFormData(String slideRef, String sessionID) {
 		// Get all submitted form data associated with a specific slide
 		sessionID = sessionId(sessionID);
 		if (slideRef.startsWith("/")) {
@@ -3585,22 +4048,20 @@ public class Core {
 		return data;
 	}
 
+	public static JSONArray getSubmittedFormData(String slideRef) {
+		return getSubmittedFormData(slideRef, null);
+	}
+
 	/**
 	 * This method is used to prepare a form-dictionary that can be used later on to
 	 * submit new form data for a slide
-	 * 
+	 *
 	 * @param formID  Form's ID
-	 * @param varargs Array of optional arguments
-	 *                <p>
-	 *                sessionID : First optional argument(String), default
-	 *                value(null), session's ID
-	 *                </p>
+	 * @param sessionID session's ID
 	 * @return Form-map that can be used later on to submit new form data for a
 	 *         slide
 	 */
-	public static Map<String, String> prepareFormMap(String formID, String... varargs) {
-		// setting the default values when arguments' values are omitted
-		String sessionID = varargs.length > 0 ? varargs[0] : null;
+	public static Map<String, String> prepareFormMap(String formID, String sessionID) {
 		// Prepare a form-dictionary that can be used later on to submit new form data
 		// for a slide
 		if (formID == null) {
@@ -3663,26 +4124,19 @@ public class Core {
 		return formDef;
 	}
 
+	public static Map<String, String> prepareFormMap(String formID) {
+		return prepareFormMap(formID, null);
+	}
+
 	/**
 	 * This method is used to get a Map of the forms available to fill out, either
 	 * system-wide (leave slideref to "null"), or for a particular slide
-	 * 
-	 * @param varargs Array of optional arguments
-	 *                <p>
-	 *                slideRef : First optional argument(String), default
-	 *                value(null), slide's path
-	 *                </p>
-	 *                <p>
-	 *                sessionID : Second optional argument(String), default
-	 *                value(null), session's ID
-	 *                </p>
+	 * @param slideRef slide's path
+	 * @param sessionID session's ID
 	 * @return Map of the forms available to fill out, either system-wide (leave
 	 *         slideref to "null"), or for a particular slide
 	 */
-	public static Map<String, String> getAvailableForms(String... varargs) {
-		// setting the default values when arguments' values are omitted
-		String slideRef = varargs.length > 0 ? varargs[0] : null;
-		String sessionID = varargs.length > 0 ? varargs[1] : null;
+	public static Map<String, String> getAvailableForms(String slideRef, String sessionID) {
 		// See what forms are available to fill out, either system-wide (leave slideref
 		// to None), or for a particular slide
 		sessionID = sessionId(sessionID);
@@ -3747,19 +4201,24 @@ public class Core {
 		return forms;
 	}
 
+	public static Map<String, String> getAvailableForms(String slideRef) {
+		return getAvailableForms(slideRef, null);
+	}
+
+	public static Map<String, String> getAvailableForms() {
+		return getAvailableForms(null, null);
+	}
+
 	/**
 	 * To be elaborated later
-	 * 
+	 *
 	 * @param slideRef To be elaborated later
 	 * @param formID   To be elaborated later
 	 * @param formMap  To be elaborated later
-	 * @param varargs  To be elaborated later
+	 * @param sessionID  To be elaborated later
 	 * @return To be elaborated later
 	 */
-	public static String submitFormData(String slideRef, String formID, String formMap, String... varargs) {
-		// setting the default value when argument' value is omitted
-		String sessionID = varargs.length > 0 ? varargs[0] : null;
-		// Not implemented yet
+	public static String submitFormData(String slideRef, String formID, String formMap, String sessionID) {
 		sessionID = sessionId(sessionID);
 		if (slideRef.startsWith("/")) {
 			slideRef = slideRef.substring(1);
@@ -3767,20 +4226,18 @@ public class Core {
 		return null;
 	}
 
+	public static String submitFormData(String slideRef, String formID, String formMap) {
+		return submitFormData(slideRef, formID, formMap, null);
+	}
+
 	/**
 	 * This method is used to retrieve the annotations for slide slideRef
-	 * 
+	 *
 	 * @param slideRef slide's path
-	 * @param varargs  Array of optional arguments
-	 *                 <p>
-	 *                 sessionID : First optional argument(String), default
-	 *                 value(null), session's ID
-	 *                 </p>
+	 * @param  sessionID session's ID
 	 * @return Annotations for a slide in a json Array format
 	 */
-	public static JSONArray getAnnotations(String slideRef, String... varargs) {
-		// setting the default value when argument' value is omitted
-		String sessionID = varargs.length > 0 ? varargs[0] : null;
+	public static JSONArray getAnnotations(String slideRef, String sessionID) {
 		// Retrieve the annotations for slide slideRef
 		sessionID = sessionId(sessionID);
 		if (slideRef.startsWith("/")) {
@@ -3837,22 +4294,21 @@ public class Core {
 		return data;
 	}
 
+	public static JSONArray getAnnotations(String slideRef) {
+		return getAnnotations(slideRef, null);
+	}
+
 	/**
 	 * This method is used to launch the default web browser and load a web-based
 	 * viewer for the slide
-	 * 
+	 *
 	 * @param slideRef slide's path or UID
-	 * @param varargs  Array of optional arguments
-	 *                 <p>
-	 *                 sessionID : First optional argument(String), default
+	 * @param sessionID : First optional argument(String), default
 	 *                 value(null), session's ID
-	 *                 </p>
 	 * @throws Exception if unable to determine the PMA.core instance the session ID
 	 *                   belongs to
 	 */
-	public static void showSlide(String slideRef, String... varargs) throws Exception {
-		// setting the default value when arguments' value is omitted
-		String sessionID = varargs.length > 0 ? varargs[0] : null;
+	public static void showSlide(String slideRef, String sessionID) throws Exception {
 		// Launch the default web browser and load a web-based viewer for the slide
 		sessionID = sessionId(sessionID);
 		if (slideRef.startsWith("/")) {
@@ -3897,21 +4353,19 @@ public class Core {
 		}
 	}
 
+	public static void showSlide(String slideRef) throws Exception {
+		showSlide(slideRef, null);
+	}
+
 	/**
 	 * This method is used to map of files related to a slide
-	 * 
+	 *
 	 * @param slideRef slide's path or UID
-	 * @param varargs  Array of optional arguments
-	 *                 <p>
-	 *                 sessionID : First optional argument(String), default
-	 *                 value(null), session's ID
-	 *                 </p>
+	 * @param sessionID session's ID
 	 * @return Map of all files related to a slide
 	 */
 	@SuppressWarnings("serial")
-	public static Map<String, Map<String, String>> getFilesForSlide(String slideRef, String... varargs) {
-		// setting the default value when argument's value is omitted
-		String sessionID = varargs.length > 0 ? varargs[0] : null;
+	public static Map<String, Map<String, String>> getFilesForSlide(String slideRef, String sessionID) {
 		// Obtain all files actually associated with a specific slide
 		// This is most relevant with slides that are defined by multiple files, like
 		// MRXS or VSI
@@ -3920,7 +4374,7 @@ public class Core {
 			slideRef = slideRef.substring(1);
 		}
 		String url;
-		if (sessionID == pmaCoreLiteSessionID) {
+		if (sessionID.equals(pmaCoreLiteSessionID)) {
 			url = apiUrl(sessionID, false) + "EnumerateAllFilesForSlide?sessionID=" + PMA.pmaQ(sessionID)
 					+ "&pathOrUid=" + PMA.pmaQ(slideRef);
 		} else {
@@ -3990,21 +4444,19 @@ public class Core {
 		}
 	}
 
+	public static Map<String, Map<String, String>> getFilesForSlide(String slideRef) {
+		return getFilesForSlide(slideRef, null);
+	}
+
 	/**
 	 * This method is used to get list of files related to a slide for PMA.start
 	 * ONLY
-	 * 
+	 *
 	 * @param slideRef slide's path or UID
-	 * @param varargs  Array of optional arguments
-	 *                 <p>
-	 *                 sessionID : First optional argument(String), default
-	 *                 value(null), session's ID
-	 *                 </p>
+	 * @param sessionID session's ID
 	 * @return List of all files related to a selected slide for PMA.start ONLY
 	 */
-	public static List<String> enumerateFilesForSlide(String slideRef, String... varargs) {
-		// setting the default value when argument's value is omitted
-		String sessionID = varargs.length > 0 ? varargs[0] : null;
+	public static List<String> enumerateFilesForSlide(String slideRef, String sessionID) {
 		// Obtain all files actually associated with a specific slide
 		// This is most relevant with slides that are defined by multiple files, like
 		// MRXS or VSI
@@ -4067,21 +4519,19 @@ public class Core {
 		}
 	}
 
+	public static List<String> enumerateFilesForSlide(String slideRef) {
+		return enumerateFilesForSlide(slideRef, null);
+	}
+
 	/**
 	 * This method is used to get list of files related to a slide for PMA.core ONLY
-	 * 
+	 *
 	 * @param slideRef slide's path or UID
-	 * @param varargs  Array of optional arguments
-	 *                 <p>
-	 *                 sessionID : First optional argument(String), default
-	 *                 value(null), session's ID
-	 *                 </p>
+	 * @param sessionID session's ID
 	 * @return List of all files related to a selected slide for PMA.core ONLY
 	 */
 	@SuppressWarnings("serial")
-	public static List<Map<String, String>> enumerateFilesForSlidePMACore(String slideRef, String... varargs) {
-		// setting the default value when argument's value is omitted
-		String sessionID = varargs.length > 0 ? varargs[0] : null;
+	public static List<Map<String, String>> enumerateFilesForSlidePMACore(String slideRef, String sessionID) {
 		// Obtain all files actually associated with a specific slide
 		// This is most relevant with slides that are defined by multiple files, like
 		// MRXS or VSI
@@ -4135,23 +4585,21 @@ public class Core {
 		}
 	}
 
+	public static List<Map<String, String>> enumerateFilesForSlidePMACore(String slideRef) {
+		return enumerateFilesForSlidePMACore(slideRef, null);
+	}
+
 	/**
 	 * This method is used to search for slides in a directory that satisfy a
 	 * certain search pattern
-	 * 
+	 *
 	 * @param startDir Start directory
 	 * @param pattern  Search pattern
-	 * @param varargs  Array of optional arguments
-	 *                 <p>
-	 *                 sessionID : First optional argument(String), default
-	 *                 value(null), session's ID
-	 *                 </p>
+	 * @param sessionID session's ID
 	 * @return List of slides in a directory that satisfy a certain search pattern
 	 * @throws Exception If called on PMA.start
 	 */
-	public static List<String> searchSlides(String startDir, String pattern, String... varargs) throws Exception {
-		// setting the default value when argument's value is omitted
-		String sessionID = varargs.length > 0 ? varargs[0] : null;
+	public static List<String> searchSlides(String startDir, String pattern, String sessionID) throws Exception {
 		sessionID = sessionId(sessionID);
 		if (sessionID.equals(pmaCoreLiteSessionID)) {
 			if (isLite()) {
@@ -4160,7 +4608,6 @@ public class Core {
 				throw new Exception("PMA.core.lite not found, and besides; it doesn't support searching.");
 			}
 		}
-
 		if (startDir.startsWith("/")) {
 			startDir = startDir.substring(1);
 		}
@@ -4219,5 +4666,9 @@ public class Core {
 			}
 			return null;
 		}
+	}
+
+	public static List<String> searchSlides(String startDir, String pattern) throws Exception {
+		return searchSlides(startDir, pattern, null);
 	}
 }
