@@ -96,7 +96,7 @@ local.properties
 .cache-main
 .scala_dependencies
 .worksheet
-/target/
+#/target/
 
 # IntelliJ IDEA project files
 .idea/*
