@@ -12,7 +12,6 @@ pipeline {
         stage('Linux Tests') {
           steps {
             echo 'Run Linux tests'
-            sh 'sh run_linux_tests.sh'
           }
         }
 
